@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <%- include('./partials/bootstrap') %>
+    <title>Home</title>
+  </head>
+  <body style="margin-top:60px ">
+    <%- include('./partials/nav') %>
+    <div class="container">
+      <h1 class="text-success">UPPERCASE <span  class="fs-5"><%= heure %></span></h1>
+      
+      <p><a href="/register" class="btn btn-primary">S'inscrire</a>
+      <a href="/login" class="btn btn-primary">Se connecter</a></p>
+    </div>
+  </body>
+</html>

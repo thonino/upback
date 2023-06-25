@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <%- include('./partials/bootstrap') %>
+    <title>Tous les produits</title>
+  </head>
+  <body style="margin-top: 60px;">
+    <%- include('./partials/nav') %>
+    <div class="container">
+      <h1 class="mb-3 text-center">Tous nos produits</h1>
+      <div class="d-flex flex-wrap justify-content-center gap-2">
+        <% produits.forEach(produit => { %>
+          <div class="card mb-1 text-center" style="max-width: 300px;">
+            <img src="./uploads/<%= produit.photo %>" class="card-img-top w-100">
+            <div class="card-body">
+              <p class="card-title fw-bold"> <%= produit.prix %> €</p>
+              <h5 class="card-text text-capitalize fw-bold"><%= produit.nom %></h5>
+              <p class="card-text fst-italic"><strong>Catégorie:</strong> <%= produit.categorie %></p>
+              <p class="card-text text-capitalize fst-italic"><strong>Description:</strong> <%= produit.description %></p>
+              <% if (user && user.role === 'admin') { %>
+                <a href="/products/<%= produit._id %>/edit" class="btn btn-warning">Modifier</a> 
+                <a href="/products/<%= produit._id %>/delete" class="btn btn-danger">Supprimer</a>
+              <% } else { %>
+                <form class="addCart text-center" action="/add-to-cart/<%= produit._id %>" method="POST">
+                  <div class="input-group mb-3 d-grid">
+                    <input type="hidden" name="produitId" value="<%= produit._id %>">
+                    <button type="submit" class="btn btn-warning rounded">Ajouter au panier</button>
+                  </div>
+                </form>
+              <% } %>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <%- include('./partials/bootstrap') %>
+    <title>Modifier un produit</title>
+  </head>
+  <body style="margin-top:60px">
+    <%- include('./partials/nav') %>
+    <div class="container">
+      <h1 class="mb-4">Modifier un produit</h1>
+      <form action="/products/<%= product._id %>" method="POST" enctype="multipart/form-data">
+        <div class="mb-3">
+          <label for="categorie" class="form-label">Catégorie</label>
+          <input type="text" class="form-control" id="categorie" name="categorie" value="<%= product.categorie %>" required>
+        </div>
+        <div class="mb-3">
+          <label for="nom" class="form-label">Nom</label>
+          <input type="text" class="form-control" id="nom" name="nom" value="<%= product.nom %>" required>
+        </div>
+        <div class="mb-3">
+          <label for="prix" class="form-label">Prix</label>
+          <input type="number" class="form-control" id="prix" name="prix" value="<%= product.prix %>" required>
+        </div>
+        <div class="mb-3">
+          <label for="description" class="form-label">Description</label>
+          <textarea class="form-control" id="description" name="description" rows="3" required><%= product.description %></textarea>
+        </div>
+        <div class="mb-3">
+          <label for="photo" class="form-label">Photo</label>
+          <input type="file" class="form-control" id="photo" name="photo">
+        </div>
+        <button type="submit" class="btn btn-primary">Modifier</button>
+        <a href="/products/<%= product._id %>/delete" class="btn btn-danger">Supprimer</a>
+      </form>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Page utilisateur</title>
+    <%- include('./partials/bootstrap') %>
+  </head>
+  <body>
+    <%- include('./partials/nav') %>
+    <div class="w-100"style="margin-top:60px">
+      <div class="d-flex flex-column align-items-center text-center">
+        <h1 class="fw-bold ">
+          Compte de 
+          <span class="text-success text-capitalize"><%= user.prenom %></span>
+          <i class="bi bi-person-circle btn btn-success btn-sm mb-1"></i>
+        </h1>
+      </div>
+      <div class="d-flex flex-column justify-content-center w-100 text-center" > 
+        <div class="fst-italic" >
+          <h3 class="fw-light">
+            Modifier mes informations
+            <a href="/edit-user/<%= user._id %>" class="btn btn-warning btn-sm ">
+              <i class="bi bi-pencil"> Modifier</i>
+            </a>
+          </h3>
+          <h3 class="fw-light ">
+            Consulter ma boite de messagerie
+            <a  href="/messagebox/received" class="btn btn-info btn-sm">
+              <i class="bi bi-envelope "> Mes courriers</i>
+            </a>
+          </h3>
+          <h3 class="fw-light ">
+            Consulter mes factures
+            <a  href="#" class="btn btn-primary btn-sm">
+              <i class="bi bi-receipt"> Factures</i>
+            </a>
+          </h3>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

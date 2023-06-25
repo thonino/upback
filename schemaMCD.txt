@@ -1,0 +1,51 @@
+Diagrame de classe :
+"Admin" (0..*) [Association simple] (1) "Message"
+"Client" (0..*) [Association simple] (1) "Message"
+"Client" (1..*) [Composition] (0..*) "Panier"
+"Panier" (1..*) [Association simple] (0..*) "Produit"
+"Panier" (1) [Composition] (0..1) "Facture"
+"Admin" (0..*) [Association simple] (0..1) "Facture"
+"Admin" (0..*) [Agrégation faible] (1) "Produit"
+"Produit" (1) [Association simple] (1..*) "Categorie" 
+
+Cardinalité mcd
+"Admin" (0,N) --- Envoyer --- (1) "Message"
+"Client" (0,N) --- Répondre --- (1) "Message" 
+"Client" (1,N) --- Faire --- (0,N) "Panier"
+"Panier" (1,N) --- Contenir --- (0,N) "Produit" 
+"Panier" (1) --- Générer --- (0,1) "Facture" 
+"Admin" (0,N) --- Modifier --- (0,1) "Facture"
+"Admin" (0,N) ---Créer--- (1) "Produit" 
+"Produit" (1) --- Appartenir --- (1,N) "Categorie" 
+
+"Admin" (0,N) --- Envoyer --- (1) "Message"
+Chaque "Admin" peut envoyer zéro ou plusieurs "Messages"
+Chaque "Message" est envoyé par un seul "Admin"
+
+"Client" (0,N) --- Répondre --- (1) "Message"
+Chaque "Client" peut répondre à zéro ou plusieurs "Messages"
+Chaque "Message" est répondu par un seul "Client"
+
+"Client" (0,N) --- Faire --- (0,N) "Panier"
+Chaque "Client" peut avoir zéro ou plusieurs "Paniers"
+Chaque "Panier" peut être associé à zéro ou plusieurs "Clients"
+
+"Panier" (1,N) --- Contenir --- (0,N) "Produit"
+Chaque "Panier" doit contenir au moins un "Produit"
+Chaque "Produit" peut être contenu dans zéro ou plusieurs "Paniers"
+
+"Panier" (1) --- Générer --- (0,1) "Facture"
+Chaque "Panier" génère au plus une "Facture"
+Chaque "Facture" est générée par un seul "Panier"
+
+"Admin" (0,N) --- Modifier --- (0,1) "Facture"
+Chaque "Admin" peut modifier zéro ou plusieurs "Factures"
+Chaque "Facture" peut être modifiée par zéro ou un seul "Admin"
+
+"Admin" (0,N) --- Créer --- (1) "Produit"
+Chaque "Admin" peut créer zéro ou plusieurs "Produits"
+Chaque "Produit" est créé par un seul "Admin"
+
+"Produit" (1) --- Appartenir --- (1,N) "Categorie"
+Chaque "Produit" appartient à une seule "Categorie"
+Chaque "Categorie" peut avoir un ou plusieurs "Produits"

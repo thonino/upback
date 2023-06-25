@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <%- include('./partials/bootstrap') %>
+    <link rel="stylesheet" href="/public/css/dialogue.css">
+    <title>Emails Reçus</title>
+  </head>
+  <body class="text-center">
+    <%- include('./partials/nav') %>
+    <!-- parent -->
+    <div class="d-flex">
+      <!-- parent dialogue-->
+      <div class="d-flex flex-column w-100" style="margin-top:55px">
+        <!-- Title -->
+        <div class="align-items-center mb-2">
+          <h1 class="fw-bold">
+            Reçus par :  
+            <span class="fw-light fs-3 fst-italic text-success"><%= user.email %></span>
+          </h1>
+          <div class="d-flex justify-content-center w-100 text-center gap-2" > 
+            <div class="fixed-top text-end me-2"style="margin-top:70px">
+              <button id="toggle" class="btn b btn-secondary "><i class="bi bi-gear-fill "></i></button>
+            </div>
+            <div class="fst-italic">
+                <a href="/message/new" class="btn btn-success">Ecrire...</a>
+            </div>
+            <div class="fst-italic" >
+                <a href="/messagebox/sent" class="btn btn-info">Emails Envoyés</a>
+            </div>
+          </div>
+        </div>
+        <!-- fin Title -->
+          <!-- Messages -->
+          <div class="d-flex flex-column justify-content-center container">
+            <div class="text-center fst-italic">
+              <% messages.reverse().forEach((message) => { %>
+              <div class="card mb-2">
+                  <div class="d-flex justify-content-center gap-2">
+                    <h5 class="card-title text-success">Expediteur : <span class="text-muted fw-light"><%=  message.expediteur %></span></h5>
+                    <h5 class="card-title text-success">Destinataire : <span class="text-muted fw-light"><%=  message.destinataire %></span></h5>
+                  </div>
+                  <div class="d-flex justify-content-center gap-2">
+                    <h5 class="card-title text-success">Le : <span class="text-muted fw-light"><%=  message.date %></span></h5>
+                    <p class="card-text text-success">Objet : <span class="text-muted fw-light">unnamed</span></p>
+                  </div>
+                  <p class="card-text fs-4"><%= message.texte %></p>
+                  <div class="d-flex justify-content-center align-items-center gap-2">
+                    <%  if(user.role==="admin"){ %>
+                      <a  href="/message/new?destinataire=<%= message.expediteur %>&expediteur=<%= message.destinataire %>" 
+                          class="btn btn-success">Répondre</a>
+                      <% } else { %>
+                        <a href="/message/new?destinataire=<%= message.expediteur %>" class="btn btn-success mb-2">Répondre</a>
+                      <% } %>
+                    <!-- edit et delete -->
+                    <div class="cible hidden">
+                      <div class="d-flex gap-2">
+                        <form action="/delete-message/received/<%= message._id %>?_method=DELETE" method="POST">
+                          <input type="hidden" name="email" value="<%= user.email %>">
+                          <input type="hidden" name="_method" value="DELETE">
+                          <button type="submit" class="btn btn-danger">
+                            <i class='bi bi-trash'></i>
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+                </div>
+              </div>
+              <% }) %>
+            </div>
+          </div>
+          <!-- fin Message -->
+        </div>
+      <!-- fin parent dialogue-->
+    </div>
+    <div class="fixed-bottom mb-3 me-2 text-end">
+      <a href="#" class="d-inline btn btn-secondary "><i class="bi bi-arrow-up"></i></a>
+    </div>
+    <!-- fin parent -->
+    <script src="/public/js/dialogue.js"></script>
+  </body>
+</html>
