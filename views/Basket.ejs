@@ -22,10 +22,10 @@
           <tbody>
             <% cartItems.forEach((item, index) => { %>
               <tr>
-                <td class="fs-4 text-capitalize"><%= item.produit.nom %></td>
-                <td><%= item.produit.prix %> €</td>
+                <td class="fs-4 text-capitalize"><%= item.product.nom %></td>
+                <td><%= item.product.prix %> €</td>
                 <td class="col-2">
-                  <form action="/update-quantite/<%= item.produit.id %>" method="POST">
+                  <form action="/update-quantite/<%= item.product.id %>" method="POST">
                     <div class="input-group">
                       <input id="quantite<%= index %>" type="string" name="quantite" value="<%= item.quantite %>"class="form-control rounded text-center">
                       <button id="applyButton<%= index %>" data-index="<%= index %>" type="submit" class="btn btn-danger d-none">Appliquer</button>
@@ -34,7 +34,7 @@
                 </td>
                 <td><span class="text-success fw-bold "><%= item.total %> €</span></td>
                 <td>
-                  <a href="/retirer-produit/<%= item.produit.id %>" class="btn btn-danger fst-italic">
+                  <a href="/removeProduct/<%= item.product.id %>" class="btn btn-danger fst-italic">
                     <i class="bi bi-dash-circle"></i>
                   </a>
                 </td>
@@ -43,7 +43,7 @@
           </tbody>
         </table>
         <p class="text-end fs-4 fw-bold">Prix total : <span class="text-success"><%= prix_total %> €</span></p>
-        <form action="/valider-panier" method="POST" class="mb-3">
+        <form action="/validateBasket" method="POST" class="mb-3">
           <div class="mb-3">
             <% if (user) { %>
               <p class="fs-4"><strong>Votre email : </strong><span class="text-success"><%= user.email %></span></p>
@@ -56,7 +56,7 @@
           <a href="/products" class="btn btn-warning">
             <i class="bi bi-plus-lg"></i>
           </a>
-          <a href="/vider-panier" class="btn btn-danger">
+          <a href="/clearBasket" class="btn btn-danger">
             <i class="bi bi-trash"> Vider panier</i>
           </a>
           <input type="hidden" name="prix_total" value="<%= prix_total %>">

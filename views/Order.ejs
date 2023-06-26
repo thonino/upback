@@ -9,12 +9,12 @@
     <div class="container text-center">
       <h1 class="mb-3 text-center fw-bold ">Finaliser la commande</h1>
       <div class="alert alert-success fs-4" role="alert">
-        <p class="fs-4 text-dark fst-italic"><strong>Commande numéro : </strong><%= panierId %></p>
+        <p class="fs-4 text-dark fst-italic"><strong>Commande numéro : </strong><%= basketId %></p>
         <p> Votre panier a été enregisté avec succès ✅ !</p>
         <p> Vous utilisez l'adresse mail <strong><%= email %></strong>.</p>
         <p class="text-success fst-italic">Passez au paiement afin de finaliser votre commande !</p>
       </div>
-      <a href="/payementsuccess?panierId=<%= panierId %>" class="btn btn-success btn-lg">Paiement accepté</a>
+      <a href="/payementsuccess?basketId=<%= basketId %>" class="btn btn-success btn-lg">Paiement accepté</a>
       <a href="/paiementannule" class="btn btn-danger btn-lg">Paiement annulé </a>
     </div>
   </body>

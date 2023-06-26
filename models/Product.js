@@ -1,7 +1,7 @@
 // Mongodb et Mongoose :
 const mongoose = require('mongoose');
 
-const produitSchema = new mongoose.Schema({
+const productSchema = new mongoose.Schema({
   categorie: { type: String,required: true },
   nom: { type: String,required: true},
   prix: { type: Number,required: true },
@@ -9,4 +9,4 @@ const produitSchema = new mongoose.Schema({
   photo: { type: String,required: true }
 });
 
-module.exports = mongoose.model('Produit', produitSchema);
+module.exports = mongoose.model('Product', productSchema);

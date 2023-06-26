@@ -19,12 +19,11 @@ const bcrypt = require('bcrypt');
 // MongoDB Mongoose et dotenv
 require('dotenv').config();
 var mongoose = require('mongoose');
-const IoMsg = require('./models/IoMsg');
 const Message = require('./models/Message');
 const User = require('./models/User');
 const Facture = require('./models/Facture');
-const Panier = require('./models/Panier');
-const Produit = require('./models/Produit');
+const Basket = require('./models/Basket');
+const Product = require('./models/Product');
 const { log } = require('console');
 const url = process.env.DATABASE_URL;
 mongoose.connect(url, {useNewUrlParser: true,useUnifiedTopology: true})
@@ -106,7 +105,7 @@ User.findOne({ email: req.body.email }).then(user => {
     res.send('Mot de passe invalide');}
     req.session.user = user;
     // req.session.user = {prenom: user.prenom} ;
-  res.redirect('/compte');
+  res.redirect('/account');
 })
 .catch(err => console.log(err));
 });
@@ -120,11 +119,11 @@ req.session.destroy((err) => {
 });
 
 // Compte user
-app.get('/compte', (req, res) => {
+app.get('/account', (req, res) => {
   
   if (!req.session.user) { return res.redirect('/login');}
   const user = req.session.user;
-  res.render('compte', {user: user });
+  res.render('Account', {user: user });
   });
 
 // Modifier compte 
@@ -143,7 +142,7 @@ app.put('/edit-user/:id', (req, res) => {
     if (!req.body.role) { userData.role = req.body.roleDefault}
     if (req.body.role) { userData.role = req.body.role}
   User.findByIdAndUpdate(req.params.id, userData)
-    .then(() => {res.redirect(`/compte`);})
+    .then(() => {res.redirect(`/account`);})
     .catch(err => {console.log(err);});
   });
 
@@ -245,8 +244,8 @@ app.put('/edit-message/:id', (req, res) => {
 // Afficher produits
 app.get('/products', (req, res) => {
   const user = req.session.user;
-  Produit.find()
-  .then(products => { res.render('allProducts',{ produits: products , user: user});})
+  Product.find()
+  .then(products => { res.render('allProducts',{ products: products , user: user});})
   .catch(err => res.render('error', { error: err.message }));
 });
 
@@ -259,8 +258,8 @@ app.get('/products/new', (req, res) => {
 app.post('/products', upload.single('photo'), (req, res) => {
   const { categorie, nom, prix, description } = req.body;
   const photo = req.file.filename; // Récupérer le nom du fichier photo
-  const nouveauProduit = new Produit({ categorie, nom, prix, description, photo});
-  nouveauProduit.save()
+  const nouveauProduct = new Product({ categorie, nom, prix, description, photo});
+  nouveauProduct.save()
   .then(() => res.redirect('/products'))
   .catch(err => res.render('error', { error: err.message }));
 });
@@ -269,7 +268,7 @@ app.post('/products', upload.single('photo'), (req, res) => {
 app.get('/products/:id/edit', (req, res) => {
   const user = req.session.user;
   const productId = req.params.id;
-  Produit.findById(productId)
+  Product.findById(productId)
   .then(product => { res.render('EditProduct', { product, user: user });})
   .catch(err => res.render('error', { error: err.message }));
 });
@@ -277,7 +276,7 @@ app.post('/products/:id', upload.single('photo'), (req, res) => {
   const productId = req.params.id;
   const { categorie, nom, prix, description } = req.body;
   const photo = req.file ? req.file.filename : undefined;
-  Produit.findByIdAndUpdate(
+  Product.findByIdAndUpdate(
     productId,{categorie, nom, prix, description, photo },{ new: true })
   .then(updatedProduct => { res.redirect('/products');})
   .catch(err => res.render('error', { error: err.message }));
@@ -286,7 +285,7 @@ app.post('/products/:id', upload.single('photo'), (req, res) => {
 // Supprimer produit
 app.get('/products/:id/delete', (req, res) => {
   const productId = req.params.id; 
-  Produit.findByIdAndDelete(productId)
+  Product.findByIdAndDelete(productId)
   .then(() => res.redirect('/products'))
   .catch(err => res.render('error', { error: err.message }));
 });
@@ -294,32 +293,32 @@ app.get('/products/:id/delete', (req, res) => {
 // -------------------- P A N I E R -------------------- //
 
 // Afficher panier
-app.get('/panier', (req, res) => {
+app.get('/basket', (req, res) => {
   const user = req.session.user;
   let cartItems = req.cookies.cartItems || [];
   let prix_total = 0;
   cartItems.forEach(item => {
-    item.total = item.produit.prix * item.quantite;
+    item.total = item.product.prix * item.quantite;
     prix_total += item.total;
   });
-  res.render('Panier', { cartItems: cartItems, user: user, prix_total: prix_total });
+  res.render('Basket', { cartItems: cartItems, user: user, prix_total: prix_total });
 });
 
 // Ajouter au panier
-app.post('/add-to-cart/:produitId', async (req, res) => {
-  const produitId = req.params.produitId;
+app.post('/add-to-cart/:productId', async (req, res) => {
+  const productId = req.params.productId;
   let cartItems = req.cookies.cartItems || [];
-  // Vérifier si le produit existe déjà dans le panier
-  const existingItem = cartItems.find(item => item.produit.id === produitId);
+  // Vérifier si le produit existe déjà dans le basket
+  const existingItem = cartItems.find(item => item.product.id === productId);
   if (existingItem) { existingItem.quantite += 1;} // +1 si le produit est présent
   else {
-    try { const produit = await Produit.findById(produitId);
-      if (produit) {
+    try { const product = await Product.findById(productId);
+      if (product) {
         cartItems.push({
-          produit: {
-            id: produit._id,
-            nom: produit.nom,
-            prix: produit.prix
+          product: {
+            id: product._id,
+            nom: product.nom,
+            prix: product.prix
           },
           quantite: 1
         });
@@ -328,54 +327,54 @@ app.post('/add-to-cart/:produitId', async (req, res) => {
     catch (error) { console.log(error); }
   }
   res.cookie('cartItems', cartItems);
-  res.redirect('/panier');
+  res.redirect('/basket');
 });
 
 // Modifier Quantité 
-app.post('/update-quantite/:produitId', (req, res) => {
-  const produitId = req.params.produitId;
+app.post('/update-quantite/:productId', (req, res) => {
+  const productId = req.params.productId;
   const quantite = parseInt(req.body.quantite);
   let cartItems = req.cookies.cartItems || [];
   cartItems.forEach(item => {
-    if (item.produit.id === produitId) { item.quantite = quantite; }
+    if (item.product.id === productId) { item.quantite = quantite; }
   });
   res.cookie('cartItems', cartItems);
-  res.redirect('/panier');
+  res.redirect('/basket');
 });
 
  // Retirer produit du panier
-app.get('/retirer-produit/:produitId', (req, res) => {
-  const produitId = req.params.produitId;
+app.get('/removeProduct/:productId', (req, res) => {
+  const productId = req.params.productId;
   let cartItems = req.cookies.cartItems || [];
-  cartItems = cartItems.filter(item => item.produit.id !== produitId);
+  cartItems = cartItems.filter(item => item.product.id !== productId);
   res.cookie('cartItems', cartItems);
-  res.redirect('/panier');
+  res.redirect('/basket');
 });
 
 // Vider le panier
-app.get('/vider-panier', (req, res) => {
+app.get('/clearBasket', (req, res) => {
   res.clearCookie('cartItems');
-  res.redirect('/panier');
+  res.redirect('/basket');
 });
 
 // Valider panier
-app.post('/valider-panier', async (req, res) => {
+app.post('/validateBasket', async (req, res) => {
   const prixTotal = req.body.prix_total;
   const email = req.body.email; 
   const heure = moment().format('DD-MM-YYYY, h:mm:ss');
-  const produits = req.cookies.cartItems; // récupère array produits
+  const products = req.cookies.cartItems; // récupère array Products
   try { 
-    const panier = await Panier.create({ // Stocker dans la base de donnée
+    const basket = await Basket.create({ // Stocker dans la base de donnée
       prix_total: prixTotal,
       email: email,
-      produits: produits, 
+      products: products, 
       date: heure
     });
-    const panierId = panier._id;
+    const basketId = basket._id;
     res.clearCookie('cartItems'); // Vider le panier 
     // Envoyer l'email et l'id du panier vers "/order"
     // res.redirect('/confirmation?email=' + encodeURIComponent(email));
-    res.redirect('/order?email='+email+'&panierId=' + panierId);
+    res.redirect('/order?email='+email+'&basketId=' + basketId);
   } 
   catch (error) { console.log(error); res.redirect('/erreur'); }
 });
@@ -383,24 +382,24 @@ app.post('/valider-panier', async (req, res) => {
 // Confirmation panier 
 app.get('/order', (req, res) => {
   // Récupérer l'email et l'id du panier via la requête
-  const panierId = req.query.panierId;
+  const basketId = req.query.basketId;
   const email = req.query.email;
   const user = req.session.user;
-  res.render('Order', { email: email, user: user, panierId: panierId });
+  res.render('Order', { email: email, user: user, basketId: basketId });
 });
 
 // Paiement succès
 app.get('/payementsuccess', async (req, res) => {
   // Récupérer l'ID du panier depuis la requête
-  const panierId = req.query.panierId; 
+  const basketId = req.query.basketId; 
   const user = req.session.user;
   const heure = moment().format('DD-MM-YYYY, h:mm:ss');
   try { 
-    const facture = new Facture({ panierId: panierId, date: heure});
+    const facture = new Facture({ basketId: basketId, date: heure});
     await facture.save();
     const factureId = facture._id;
     res.render('PaymentSuccess', { 
-      user: user,panierId: panierId, factureId: factureId 
+      user: user,basketId: basketId, factureId: factureId 
     });
   } 
   catch (error) {console.log(error);res.redirect('/erreur');}
