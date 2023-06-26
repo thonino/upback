@@ -21,7 +21,7 @@ require('dotenv').config();
 var mongoose = require('mongoose');
 const Message = require('./models/Message');
 const User = require('./models/User');
-const Facture = require('./models/Facture');
+const Invoice = require('./models/Invoice');
 const Basket = require('./models/Basket');
 const Product = require('./models/Product');
 const { log } = require('console');
@@ -239,6 +239,7 @@ app.put('/edit-message/:id', (req, res) => {
     .catch(err => {console.log(err);res.redirect('/'); });
   });
 
+
 // -------------------- P R O D U I T S -------------------- //
 
 // Afficher produits
@@ -289,6 +290,7 @@ app.get('/products/:id/delete', (req, res) => {
   .then(() => res.redirect('/products'))
   .catch(err => res.render('error', { error: err.message }));
 });
+
 
 // -------------------- P A N I E R -------------------- //
 
@@ -395,11 +397,11 @@ app.get('/payementsuccess', async (req, res) => {
   const user = req.session.user;
   const heure = moment().format('DD-MM-YYYY, h:mm:ss');
   try { 
-    const facture = new Facture({ basketId: basketId, date: heure});
-    await facture.save();
-    const factureId = facture._id;
+    const invoice = new Invoice({ basketId: basketId, date: heure});
+    await invoice.save();
+    const invoiceId = invoice._id;
     res.render('PaymentSuccess', { 
-      user: user,basketId: basketId, factureId: factureId 
+      user: user,basketId: basketId, invoiceId: invoiceId 
     });
   } 
   catch (error) {console.log(error);res.redirect('/erreur');}
