@@ -65,15 +65,17 @@ app.use('/cartItem.json', express.static('cartItem.json'));
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 
-//  CORS : Same Origin et d'en-tête
-app.use((req, res, next) => {
-  // Remplacez cette valeur par l'URL de votre application React
-  res.header('Access-Control-Allow-Origin', 'http://localhost:3000'); 
-  res.header(
-    'Access-Control-Allow-Headers', 
-    'Origin, X-Requested-With, Content-Type, Accept'
-  ); next();
-});
+// CORS : 
+const cors = require('cors')
+app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:3000',
+  methods: 'GET, POST, PUT, DELETE', 
+  allowedHeaders: 'Content-Type, Authorization', 
+  credentials: true 
+}));
+
+
 
 //  - - - - - - - - - - U S E R - - - - - - - - - - - //
 
@@ -252,12 +254,17 @@ app.put('/edit-message/:id', (req, res) => {
 // -------------------- P R O D U I T S -------------------- //
 
 // Afficher produits
+// app.get('/products', (req, res) => {
+//   const user = req.session.user;
+//   Product.find()
+//   .then(products => { 
+//     res.render('allProducts',{ user: user, products});})
+//   .catch(err => res.render('error', { error: err.message }));
+// });
 app.get('/products', (req, res) => {
-  const user = req.session.user;
   Product.find()
-  .then(products => { 
-    res.render('allProducts',{ products: products , user: user});})
-  .catch(err => res.render('error', { error: err.message }));
+  .then(data => {res.json(data)})
+  .catch(err => console.log(err)); 
 });
 
 // Ajouter produit
