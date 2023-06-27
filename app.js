@@ -65,6 +65,15 @@ app.use('/cartItem.json', express.static('cartItem.json'));
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 
+//  CORS : Same Origin et d'en-tête
+app.use((req, res, next) => {
+  // Remplacez cette valeur par l'URL de votre application React
+  res.header('Access-Control-Allow-Origin', 'http://localhost:3000'); 
+  res.header(
+    'Access-Control-Allow-Headers', 
+    'Origin, X-Requested-With, Content-Type, Accept'
+  ); next();
+});
 
 //  - - - - - - - - - - U S E R - - - - - - - - - - - //
 
@@ -228,7 +237,7 @@ app.put('/edit-message/:id', (req, res) => {
   };
   Message.findByIdAndUpdate(req.params.id, messageData)
     .then(() => {res.redirect(`/messagebox/sent`);})
-    .catch(err => {console.log(err);});
+    .catch(err => {console.log(err);});nh
   });
 
   // Effacer courrier 
@@ -246,7 +255,8 @@ app.put('/edit-message/:id', (req, res) => {
 app.get('/products', (req, res) => {
   const user = req.session.user;
   Product.find()
-  .then(products => { res.render('allProducts',{ products: products , user: user});})
+  .then(products => { 
+    res.render('allProducts',{ products: products , user: user});})
   .catch(err => res.render('error', { error: err.message }));
 });
 
