@@ -254,11 +254,12 @@ app.put('/edit-message/:id', (req, res) => {
 // -------------------- P R O D U I T S -------------------- //
 
 // Afficher produits
+//EJS
 // app.get('/products', (req, res) => {
 //   const user = req.session.user;
 //   Product.find()
 //   .then(products => { 
-//     res.render('allProducts',{ user: user, products});})
+//     res.render('Products',{ user: user, products});})
 //   .catch(err => res.render('error', { error: err.message }));
 // });
 app.get('/products', (req, res) => {
@@ -268,29 +269,30 @@ app.get('/products', (req, res) => {
 });
 
 // Ajouter produit
-app.get('/products/new', (req, res) => {
+app.get('/product/new', (req, res) => {
   const user = req.session.user;
   if (!user || user.role !== "admin") {return res.redirect('/login');}
   res.render('ProductForm', { user: user });
 });
-app.post('/products', upload.single('photo'), (req, res) => {
+app.post('/product/new', upload.single('photo'), (req, res) => {
   const { categorie, nom, prix, description } = req.body;
   const photo = req.file.filename; // Récupérer le nom du fichier photo
   const nouveauProduct = new Product({ categorie, nom, prix, description, photo});
-  nouveauProduct.save()
-  .then(() => res.redirect('/products'))
-  .catch(err => res.render('error', { error: err.message }));
+  nouveauProduct
+    .save()
+    .then(() => res.redirect("http://localhost:3000/products"))
+    .catch((err) => res.render("error", { error: err.message }));
 });
 
 // Modifier produit
-app.get('/products/:id/edit', (req, res) => {
+app.get('/product/:id/edit', (req, res) => {
   const user = req.session.user;
   const productId = req.params.id;
   Product.findById(productId)
   .then(product => { res.render('EditProduct', { product, user: user });})
   .catch(err => res.render('error', { error: err.message }));
 });
-app.post('/products/:id', upload.single('photo'), (req, res) => {
+app.post('/product/:id', upload.single('photo'), (req, res) => {
   const productId = req.params.id;
   const { categorie, nom, prix, description } = req.body;
   const photo = req.file ? req.file.filename : undefined;
@@ -301,7 +303,7 @@ app.post('/products/:id', upload.single('photo'), (req, res) => {
 });
 
 // Supprimer produit
-app.get('/products/:id/delete', (req, res) => {
+app.get('/product/:id/delete', (req, res) => {
   const productId = req.params.id; 
   Product.findByIdAndDelete(productId)
   .then(() => res.redirect('/products'))

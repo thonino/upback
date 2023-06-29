@@ -8,7 +8,7 @@
     <%- include('./partials/nav') %>
     <div class="container">
       <h1 class="mb-4">Modifier un produit</h1>
-      <form action="/products/<%= product._id %>" method="POST" enctype="multipart/form-data">
+      <form action="/product/<%= product._id %>" method="POST" enctype="multipart/form-data">
         <div class="mb-3">
           <label for="categorie" class="form-label">Catégorie</label>
           <input type="text" class="form-control" id="categorie" name="categorie" value="<%= product.categorie %>" required>
@@ -29,8 +29,8 @@
           <label for="photo" class="form-label">Photo</label>
           <input type="file" class="form-control" id="photo" name="photo">
         </div>
-        <button type="submit" class="btn btn-primary">Modifier</button>
-        <a href="/products/<%= product._id %>/delete" class="btn btn-danger">Supprimer</a>
+        <button type="submit" class="btn btn-success">Enregistrer</button>
+        <a href="/product/<%= product._id %>/delete" class="btn btn-danger">Supprimer</a>
       </form>
     </div>
   </body>
