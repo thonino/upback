@@ -1,5 +1,5 @@
 //  - - - - - - - - -D E P E N D A N C E S- - - - - - - - - - //
-// je suis la branche main
+//                          M A I N                             //
 
 // express & express-session
 const express = require('express');
