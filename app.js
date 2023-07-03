@@ -255,19 +255,14 @@ app.put('/edit-message/:id', (req, res) => {
 // -------------------- P R O D U I T S -------------------- //
 
 // Afficher produits
-//EJS
-// app.get('/products', (req, res) => {
-//   const user = req.session.user;
-//   Product.find()
-//   .then(products => { 
-//     res.render('Products',{ user: user, products});})
-//   .catch(err => res.render('error', { error: err.message }));
-// });
 app.get('/products', (req, res) => {
+  const user = req.session.user;
   Product.find()
-  .then(data => {res.json(data)})
-  .catch(err => console.log(err)); 
+  .then(products => { 
+    res.render('Products',{ user: user, products});})
+  .catch(err => res.render('error', { error: err.message }));
 });
+
 
 // Ajouter produit
 app.get('/product/new', (req, res) => {
