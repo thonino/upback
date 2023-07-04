@@ -18,8 +18,8 @@
               <p class="card-text fst-italic"><strong>Catégorie:</strong> <%= product.categorie %></p>
               <p class="card-text text-capitalize fst-italic"><strong>Description:</strong> <%= product.description %></p>
               <% if (user && user.role === 'admin') { %>
-                <a href="/product/<%= product._id %>/edit" class="btn btn-warning">Modifier</a> 
-                <a href="/product/<%= product._id %>/delete" class="btn btn-danger">Supprimer</a>
+                <a href="/product/edit/<%= product._id %>" class="btn btn-warning">Modifier</a> 
+                <a href="/product/delete/<%= product._id %>" class="btn btn-danger">Supprimer</a>
               <% } else { %>
                 <form class="addCart text-center" action="/add-to-cart/<%= product._id %>" method="POST">
                   <div class="input-group mb-3 d-grid">

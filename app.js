@@ -1,5 +1,4 @@
 //  - - - - - - - - -D E P E N D A N C E S- - - - - - - - - - //
-//                          E J S                             //
 
 // express & express-session
 const express = require('express');
@@ -255,12 +254,18 @@ app.put('/edit-message/:id', (req, res) => {
 // -------------------- P R O D U I T S -------------------- //
 
 // Afficher produits
+//EJS
+// app.get('/products', (req, res) => {
+//   const user = req.session.user;
+//   Product.find()
+//   .then(products => { 
+//     res.render('Products',{ user: user, products});})
+//   .catch(err => res.render('error', { error: err.message }));
+// });
 app.get('/products', (req, res) => {
-  const user = req.session.user;
   Product.find()
-  .then(products => { 
-    res.render('Products',{ user: user, products});})
-  .catch(err => res.render('error', { error: err.message }));
+  .then(data => {res.json(data)})
+  .catch(err => console.log(err)); 
 });
 
 
@@ -276,19 +281,22 @@ app.post('/product/new', upload.single('photo'), (req, res) => {
   const nouveauProduct = new Product({ categorie, nom, prix, description, photo});
   nouveauProduct
     .save()
-    .then(() => res.redirect("http://localhost:3000/products"))
+    // EJS
+    .then(() => res.redirect("/products"))
+    // React sans hooks
+    // .then(() => res.redirect("http://localhost:3000/products"))
     .catch((err) => res.render("error", { error: err.message }));
 });
 
 // Modifier produit
-app.get('/product/:id/edit', (req, res) => {
+app.get('/product/edit/:id', (req, res) => {
   const user = req.session.user;
   const productId = req.params.id;
   Product.findById(productId)
   .then(product => { res.render('EditProduct', { product, user: user });})
   .catch(err => res.render('error', { error: err.message }));
 });
-app.post('/product/:id', upload.single('photo'), (req, res) => {
+app.post('/product/edit/:id', upload.single('photo'), (req, res) => {
   const productId = req.params.id;
   const { categorie, nom, prix, description } = req.body;
   const photo = req.file ? req.file.filename : undefined;
@@ -299,7 +307,7 @@ app.post('/product/:id', upload.single('photo'), (req, res) => {
 });
 
 // Supprimer produit
-app.get('/product/:id/delete', (req, res) => {
+app.get('/product/delete/:id', (req, res) => {
   const productId = req.params.id; 
   Product.findByIdAndDelete(productId)
   .then(() => res.redirect('/products'))
