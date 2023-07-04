@@ -1,4 +1,5 @@
 //  - - - - - - - - -D E P E N D A N C E S- - - - - - - - - - //
+//                          E J S                             //
 
 // express & express-session
 const express = require('express');
@@ -254,18 +255,13 @@ app.put('/edit-message/:id', (req, res) => {
 // -------------------- P R O D U I T S -------------------- //
 
 // Afficher produits
-//EJS
-// app.get('/products', (req, res) => {
-//   const user = req.session.user;
-//   Product.find()
-//   .then(products => { 
-//     res.render('Products',{ user: user, products});})
-//   .catch(err => res.render('error', { error: err.message }));
-// });
+// EJS
 app.get('/products', (req, res) => {
+  const user = req.session.user;
   Product.find()
-  .then(data => {res.json(data)})
-  .catch(err => console.log(err)); 
+  .then(products => { 
+    res.render('Products',{ user: user, products});})
+  .catch(err => res.render('error', { error: err.message }));
 });
 
 
@@ -281,10 +277,7 @@ app.post('/product/new', upload.single('photo'), (req, res) => {
   const nouveauProduct = new Product({ categorie, nom, prix, description, photo});
   nouveauProduct
     .save()
-    // EJS
     .then(() => res.redirect("/products"))
-    // React sans hooks
-    // .then(() => res.redirect("http://localhost:3000/products"))
     .catch((err) => res.render("error", { error: err.message }));
 });
 
