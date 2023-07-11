@@ -86,6 +86,15 @@ app.use(
   })
 );
 
+// npm install toobusy-js
+const toobusy = require('toobusy-js');
+app.use(function(req,res,next){
+  if(toobusy()){
+    res.status(503).send("Server too busy")
+  }
+  else{next();}
+});
+
 //  - - - - - - - - - - U S E R - - - - - - - - - - - //
 
 // Page d'accueil
