@@ -76,6 +76,49 @@ app.use(cors({
   credentials: true 
 }));
 
+// compétence 14
+// npm install toobusy-js
+const toobusy = require('toobusy-js');
+app.use(function(req,res,next){
+  if(toobusy()){
+    res.status(503).send("Server too busy")
+  }
+  else{next();}
+});
+
+// captcha 
+const svgCaptcha = require('svg-captcha');
+
+app.get('/captcha', function(req, res){
+  const captcha = svgCaptcha.create();
+  req.session.captcha = captcha.text;
+  res.type('svg');
+  res.status(200).send(captcha.data);
+});
+
+app.post('/verify', function(req,res){
+  const {userInput} = req.body;
+  if(userInput === req.session.captcha){
+    res.status(200).send("Captcha valid")
+  }
+  else{ res.status(400).send("Captcha invalid")}
+});
+
+// hpp ( Pollution Http)
+const hpp = require('hpp');
+app.use(hpp());
+
+// helmet
+const helmet = require('helmet')  
+app.use(helmet());
+
+// nocache (cache-control)
+const nocache = require("nocache");
+app.use(nocache());
+
+// npm update
+// pour mettre à jour npm
+
 
 
 //  - - - - - - - - - - U S E R - - - - - - - - - - - //
@@ -164,6 +207,7 @@ app.delete('/delete-user/:id', (req, res) => {
   .then(() => {res.redirect("/logout");})
   .catch(err => {console.log(err);});
 });
+
 
 // -------------------- C O U R R I E R -------------------- //
 
