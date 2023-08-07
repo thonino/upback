@@ -27,8 +27,20 @@
                 <td class="col-2">
                   <form action="/update-quantite/<%= item.product.id %>" method="POST">
                     <div class="input-group">
-                      <input id="quantite<%= index %>" type="string" name="quantite" value="<%= item.quantite %>"class="form-control rounded text-center">
-                      <button id="applyButton<%= index %>" data-index="<%= index %>" type="submit" class="btn btn-danger d-none">Appliquer</button>
+                      <input 
+                        id="quantite<%= index %>" 
+                        type="string" name="quantite" 
+                        value="<%= item.quantite %>"
+                        class="form-control rounded text-center"
+                      >
+                      <button 
+                        id="applyButton<%= index %>" 
+                        data-index="<%= index %>" 
+                        type="submit" 
+                        class="btn btn-danger d-none"
+                      >
+                        Appliquer
+                      </button>
                     </div>
                   </form>
                 </td>
@@ -66,14 +78,7 @@
         <p>Votre panier est vide.</p>
       <% } %>
     </div>
-    <script>
-      // Afficher btn "appliquer" si quantité modifiée
-      var inputs = document.querySelectorAll('[id^="quantite"]');
-      inputs.forEach(function(input) {
-        var button = input.nextElementSibling;
-        input.addEventListener('input', function() { button.classList.remove('d-none');});
-        button.addEventListener('click', function() { button.classList.add('d-none');});
-      });
-    </script>
+    <script src="/public/js/bascket.js"></script>
+    <%- include('./partials/bootstrap-foot') %>
   </body>
 </html>
