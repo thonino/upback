@@ -3,19 +3,34 @@
 
 // express & express-session
 const express = require("express");
+
 const session = require("express-session");
 const http = require("http");
 const app = express();
 const server = http.createServer(app);
 
+
 // Configurer express-session
 app.use(
   session({
+    key: "userId",
     secret: "1234",
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
+    cookie: {
+      maxAge: 30*24 * 60 * 60 * 1000, 
+    },
   })
 );
+
+// CORS :
+const cors = require("cors");
+app.use(cors({ 
+  origin: 'http://localhost:3000', 
+  methods: 'GET, POST, PUT, DELETE',
+  allowedHeaders: 'Content-Type, Authorization',
+  credentials: true 
+}));
 
 // bcrypt
 const bcrypt = require("bcrypt");
@@ -44,8 +59,8 @@ app.set("view engine", "ejs");
 
 // BodyParser
 const bodyParser = require("body-parser");
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Method-override :
 const methodOverride = require("method-override");
@@ -71,28 +86,21 @@ app.use("/public", express.static("public"));
 app.use("/uploads", express.static("uploads"));
 app.use("/cartItem.json", express.static("cartItem.json"));
 
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
-// CORS :
-const cors = require("cors");
-app.use(cors());
-app.use(
-  cors({
-    origin: "http://localhost:3000",
-    methods: "GET, POST, PUT, DELETE",
-    allowedHeaders: "Content-Type, Authorization",
-    credentials: true,
-  })
-);
-
 // npm install toobusy-js
-const toobusy = require('toobusy-js');
-app.use(function(req,res,next){
-  if(toobusy()){
-    res.status(503).send("Server too busy")
+const toobusy = require("toobusy-js");
+app.use(function (req, res, next) {
+  if (toobusy()) {
+    res.status(503).send("Server too busy");
+  } else {
+    next();
   }
-  else{next();}
 });
 
 //  - - - - - - - - - - U S E R - - - - - - - - - - - //
@@ -107,7 +115,7 @@ app.get("/", (req, res) => {
 // Inscription
 app.get("/register", (req, res) => {
   const user = req.session.user;
-  res.render("RegisterForm", { user: user });
+  res.json(user);
 });
 app.post("/register", function (req, res) {
   const userData = new User({
@@ -127,23 +135,35 @@ app.post("/register", function (req, res) {
 });
 
 // Connexion
-app.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-  const user = await User.findOne({ email });
-  const found = user ? await bcrypt.compare(password, user.password) : false;
-  return user && found ? (
-      (req.session.user = user),
-      res.cookie("sessionId", req.session.id, { httpOnly: true }),
-      res.json({ success: true }))
-    : res.status(400).json({
-      error: user ? "Password invalide" : "Email invalide" });
+app.get("/login", (req, res) => {
+  res.status(200).send("Login GET route");
 });
+app.post("/login", async (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  console.log("Node login : "+email, password);
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.status(400).json({ error: "Email invalide" });
+  }
+  const isPasswordValid = await bcrypt.compare(password, user.password);
+  if (!isPasswordValid) {
+    return res.status(400).json({ error: "Mot de passe invalide" });
+  }
+  req.session.user = user;
+  // console.log("node user : "+user); // fonctinnel
+  const data = user;
+  return res.json({ success: true, data });
+});
+
+
 
 // Déconnexion
 app.post("/logout", (req, res) => {
   req.session.destroy((err) => {
     return err
-      ? (console.log(err), res.status(500).send("Erreur lors de la déconnexion"))
+      ? (console.log(err),
+        res.status(500).send("Erreur lors de la déconnexion"))
       : res.sendStatus(200);
   });
 });
@@ -315,7 +335,6 @@ app.put("/edit-message/:id", (req, res) => {
     .catch((err) => {
       console.log(err);
     });
-  nh;
 });
 
 // Effacer courrier
