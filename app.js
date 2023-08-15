@@ -284,14 +284,21 @@ app.put('/edit-message/:id', (req, res) => {
   };
   Message.findByIdAndUpdate(req.params.id, messageData)
     .then(() => {res.redirect(`/messagebox/sent`);})
-    .catch(err => {console.log(err);});nh
+    .catch(err => {console.log(err);});
   });
 
-  // Effacer courrier 
+  // Effacer courrier reçu
   app.delete('/delete-message/received/:messageId', (req, res) => {
     const messageId = req.params.messageId;
     Message.findByIdAndRemove(messageId)
     .then(() => {res.redirect(`/messagebox/received`);})
+    .catch(err => {console.log(err);res.redirect('/'); });
+  });
+  // Effacer courrier envoyé
+  app.delete('/delete-message/sent/:messageId', (req, res) => {
+    const messageId = req.params.messageId;
+    Message.findByIdAndRemove(messageId)
+    .then(() => {res.redirect(`/messagebox/sent`);})
     .catch(err => {console.log(err);res.redirect('/'); });
   });
 
