@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Nouveau Message</title>
+  <title>Contacter</title>
   <%- include('./partials/bootstrap') %>
 </head>
   <body style="margin-top:60px">
@@ -9,9 +9,21 @@
     <div class="d-flex flex-column align-items-center ">
       <div class="container col-6">
         <div class="align-items-center mb-2">
-          <h1 class="fw-bold">
-            Nouveau courrier  
-            <span class="fw-light fs-3 fst-italic text-success"><%= user.email %></span>
+          <h1 class="fw-bold text-center">
+            Contacter
+            <span class="fw-light fs-3 fst-italic text-success"><br>
+              <% if (expediteur) {  %>
+                De: <%= expediteur %><br>
+              <% } else { %>
+                De: <%= user.email %><br>
+              <% } %>
+              <% if (destinataire) {  %>
+                A: <%= destinataire %>
+              <% } else { %>
+                A: admin@amdin
+              <% } %>
+               
+            </span>
           </h1>
         </div>
         <form method="POST" action="/message">
@@ -32,8 +44,7 @@
             <textarea class="form-control" name="texte" rows="4" required></textarea>
           </div>
           <button type="submit" class="btn btn-primary fst-italic mt-2">Envoyer</button>
-          <a href="/account" class="btn btn-success fw-bold mt-2">Mon compte</a>
-          <a href="/messagebox" class="btn btn-info fw-bold mt-2">Boite de messagerie</a>
+          <a href="/messagebox/received" class="btn btn-info fw-bold mt-2">Boite de messagerie</a>
         </form>
       </div>
     </div>

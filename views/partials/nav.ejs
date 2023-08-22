@@ -10,7 +10,7 @@
         </li>
         <% if (user && user.role === "admin") { %>
           <li class="nav-item">
-            <a class="nav-link" href="/product/new"> New Produit</a>
+            <a class="nav-link" href="/product/new"> Ajouter Produit</a>
           </li>
         <% } %>
         <li class="nav-item">
@@ -37,11 +37,13 @@
             <i class="bi bi-person-circle btn btn-success btn-sm"> Mon Compte</i>
           </a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/message/new">
-            <i class="bi bi-envelope  btn btn-info btn-sm"> Nous-contacter</i>
-          </a>
-        </li>
+        <% if (user && user.role !== "admin") { %> 
+          <li class="nav-item">
+            <a class="nav-link" href="/message/new">
+              <i class="bi bi-envelope  btn btn-info btn-sm"> Nous-contacter</i>
+            </a>
+          </li>
+        <%} %>
         <li class="nav-item ">
           <a class="nav-link " href="/logout">
             <i class="bi bi-box-arrow-left btn btn-danger btn-sm"> Déconnexion</i>
