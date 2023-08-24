@@ -3,19 +3,34 @@
 
 // express & express-session
 const express = require("express");
+
 const session = require("express-session");
 const http = require("http");
 const app = express();
 const server = http.createServer(app);
 
+
 // Configurer express-session
 app.use(
   session({
+    key: "userId",
     secret: "1234",
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
+    cookie: {
+      maxAge: 30*24 * 60 * 60 * 1000, 
+    },
   })
 );
+
+// CORS :
+const cors = require("cors");
+app.use(cors({ 
+  origin: 'http://localhost:3000', 
+  methods: 'GET, POST, PUT, DELETE',
+  allowedHeaders: 'Content-Type, Authorization',
+  credentials: true 
+}));
 
 // bcrypt
 const bcrypt = require("bcrypt");
@@ -44,8 +59,8 @@ app.set("view engine", "ejs");
 
 // BodyParser
 const bodyParser = require("body-parser");
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Method-override :
 const methodOverride = require("method-override");
@@ -71,28 +86,21 @@ app.use("/public", express.static("public"));
 app.use("/uploads", express.static("uploads"));
 app.use("/cartItem.json", express.static("cartItem.json"));
 
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
-// CORS :
-const cors = require("cors");
-app.use(cors());
-app.use(
-  cors({
-    origin: "http://localhost:3000",
-    methods: "GET, POST, PUT, DELETE",
-    allowedHeaders: "Content-Type, Authorization",
-    credentials: true,
-  })
-);
-
 // npm install toobusy-js
-const toobusy = require('toobusy-js');
-app.use(function(req,res,next){
-  if(toobusy()){
-    res.status(503).send("Server too busy")
+const toobusy = require("toobusy-js");
+app.use(function (req, res, next) {
+  if (toobusy()) {
+    res.status(503).send("Server too busy");
+  } else {
+    next();
   }
-  else{next();}
 });
 
 //  - - - - - - - - - - U S E R - - - - - - - - - - - //
@@ -107,7 +115,7 @@ app.get("/", (req, res) => {
 // Inscription
 app.get("/register", (req, res) => {
   const user = req.session.user;
-  res.render("RegisterForm", { user: user });
+  res.json(user);
 });
 app.post("/register", function (req, res) {
   const userData = new User({
@@ -127,23 +135,34 @@ app.post("/register", function (req, res) {
 });
 
 // Connexion
-app.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-  const user = await User.findOne({ email });
-  const found = user ? await bcrypt.compare(password, user.password) : false;
-  return user && found ? (
-      (req.session.user = user),
-      res.cookie("sessionId", req.session.id, { httpOnly: true }),
-      res.json({ success: true }))
-    : res.status(400).json({
-      error: user ? "Password invalide" : "Email invalide" });
+app.get("/login", (req, res) => {
+  res.status(200).send("Login GET route");
 });
+app.post("/login", async (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  // console.log("Node login : "+email, password);
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.status(400).json({ error: "Email invalide" });
+  }
+  const isPasswordValid = await bcrypt.compare(password, user.password);
+  if (!isPasswordValid) {
+    return res.status(400).json({ error: "Mot de passe invalide" });
+  }
+  req.session.user = user;
+  const data = user;
+  return res.json({ success: true, data });
+});
+
+
 
 // Déconnexion
 app.post("/logout", (req, res) => {
   req.session.destroy((err) => {
     return err
-      ? (console.log(err), res.status(500).send("Erreur lors de la déconnexion"))
+      ? (console.log(err),
+        res.status(500).send("Erreur lors de la déconnexion"))
       : res.sendStatus(200);
   });
 });
@@ -315,7 +334,6 @@ app.put("/edit-message/:id", (req, res) => {
     .catch((err) => {
       console.log(err);
     });
-  nh;
 });
 
 // Effacer courrier
@@ -408,19 +426,21 @@ app.delete("/product/delete/:id", (req, res) => {
 
 // -------------------- P A N I E R -------------------- //
 
-// Afficher panier
-app.get("/basket", (req, res) => {
+app.get('/basket', (req, res) => {
   const user = req.session.user;
   let cartItems = req.cookies.cartItems || [];
   let prix_total = 0;
-  cartItems.forEach((item) => {
-    item.total = item.product.prix * item.quantite;
-    prix_total += item.total;
+
+  cartItems.forEach(item => {
+      item.total = item.product.prix * item.quantite;
+      prix_total += item.total;
   });
-  res.render("Basket", {
-    cartItems: cartItems,
-    user: user,
-    prix_total: prix_total,
+
+  // Envoi de la réponse en JSON
+  res.json({
+      cartItems: cartItems,
+      user: user, 
+      prix_total: prix_total
   });
 });
 
@@ -450,37 +470,57 @@ app.post("/add-to-cart/:productId", async (req, res) => {
       console.log(error);
     }
   }
-  res.cookie("cartItems", cartItems);
+  res.cookie("cartItems", cartItems, { httpOnly: true, sameSite: 'none', secure: true });
   res.redirect("/basket");
 });
 
-// Modifier Quantité
+
+// Modifier Quantité d'un produit spécifique
 app.post("/update-quantite/:productId", (req, res) => {
   const productId = req.params.productId;
   const quantite = parseInt(req.body.quantite);
   let cartItems = req.cookies.cartItems || [];
-  cartItems.forEach((item) => {
-    if (item.product.id === productId) {
-      item.quantite = quantite;
-    }
-  });
-  res.cookie("cartItems", cartItems);
-  res.redirect("/basket");
+  
+  const item = cartItems.find(item => item.product.id === productId);
+  if (item) {
+    item.quantite = quantite;
+  }
+
+  res.cookie("cartItems", cartItems, { httpOnly: true, sameSite: 'none', secure: false });
+  res.json({ success: true, message: "Quantité mise à jour avec succès." });
+});
+
+// Modifier les Quantités de tous les produits
+app.post('/update-quantities', (req, res) => {
+  const updatedQuantities = req.body;
+  let cartItems = req.cookies.cartItems || [];
+
+  for (const productId in updatedQuantities) {
+      const item = cartItems.find(item => item.product.id === productId);
+      if (item) {
+          item.quantite = parseInt(updatedQuantities[productId]);
+      }
+  }
+
+  res.cookie("cartItems", cartItems, { httpOnly: true, sameSite: 'none', secure: true });
+  res.json({ success: true, message: "Quantités mises à jour avec succès." });
 });
 
 // Retirer produit du panier
 app.get("/removeProduct/:productId", (req, res) => {
   const productId = req.params.productId;
   let cartItems = req.cookies.cartItems || [];
-  cartItems = cartItems.filter((item) => item.product.id !== productId);
-  res.cookie("cartItems", cartItems);
-  res.redirect("/basket");
+  
+  cartItems = cartItems.filter(item => item.product.id !== productId);
+  
+  res.cookie("cartItems", cartItems, { httpOnly: true, sameSite: 'none', secure: false });
+  res.json({ success: true, message: "Produit retiré avec succès." });
 });
 
 // Vider le panier
 app.get("/clearBasket", (req, res) => {
   res.clearCookie("cartItems");
-  res.redirect("/basket");
+  res.json({ success: true, message: "Panier vidé avec succès." });
 });
 
 // Valider panier
@@ -489,6 +529,7 @@ app.post("/validateBasket", async (req, res) => {
   const email = req.body.email;
   const heure = moment().format("DD-MM-YYYY, h:mm:ss");
   const products = req.cookies.cartItems; // récupère array Products
+
   try {
     const basket = await Basket.create({
       // Stocker dans la base de donnée
@@ -499,37 +540,63 @@ app.post("/validateBasket", async (req, res) => {
     });
     const basketId = basket._id;
     res.clearCookie("cartItems"); // Vider le panier
-    // Envoyer l'email et l'id du panier vers "/order"
-    // res.redirect('/confirmation?email=' + encodeURIComponent(email));
-    res.redirect("/order?email=" + email + "&basketId=" + basketId);
+    // Envoyer l'email et l'id du panier sous forme de réponse JSON
+    res.json({ success: true, email: email, basketId: basketId });
   } catch (error) {
     console.log(error);
-    res.redirect("/erreur");
+    // Renvoyer une erreur sous forme de réponse JSON
+    res.json({ success: false, message: "Une erreur est survenue lors de la validation du panier." });
   }
 });
 
+
 // Confirmation panier
-app.get("/order", (req, res) => {
-  // Récupérer l'email et l'id du panier via la requête
-  const basketId = req.query.basketId;
-  const email = req.query.email;
-  const user = req.session.user;
-  res.render("Order", { email: email, user: user, basketId: basketId });
+app.get("/order/:basketId", async (req, res) => {
+    const basketId = req.params.basketId;
+    try {
+        const basket = await Basket.findById(basketId);
+        if (!basket) {
+            return res.status(404).json({ success: false, message: "Panier non trouvé." });
+        }
+        res.json(basket);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, message: "Erreur lors de la récupération des détails du panier." });
+    }
 });
 
 // Paiement succès
-app.get("/payementsuccess", async (req, res) => {
+app.post("/createInvoice", async (req, res) => {
   // Récupérer l'ID du panier depuis la requête
-  const basketId = req.query.basketId;
-  const user = req.session.user;
+  const basketId = req.body.basketId;
   const heure = moment().format("DD-MM-YYYY, h:mm:ss");
+
   try {
     const invoice = new Invoice({ basketId: basketId, date: heure });
     await invoice.save();
     const invoiceId = invoice._id;
+    
+    // Au lieu de rediriger, renvoyer l'ID de la facture dans une réponse JSON
+    res.json({ success: true, invoiceId: invoiceId });
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: 'Erreur serveur.' });
+  }
+});
+
+app.get("/payementsuccess/:invoiceId", async (req, res) => {
+  const invoiceId = req.params.invoiceId;
+  const user = req.session.user;
+
+  try {
+    const invoice = await Invoice.findById(invoiceId);
+    if (!invoice) {
+      return res.redirect("/erreur");
+    }
     res.render("PaymentSuccess", {
       user: user,
-      basketId: basketId,
+      basketId: invoice.basketId,
       invoiceId: invoiceId,
     });
   } catch (error) {
@@ -537,6 +604,9 @@ app.get("/payementsuccess", async (req, res) => {
     res.redirect("/erreur");
   }
 });
+
+
+
 
 server.listen(5000, () => {
   console.log("Serveur http://localhost:5000");
