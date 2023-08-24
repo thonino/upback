@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <%- include('./partials/bootstrap') %>
+
+<head>
+  <%- include('./partials/bootstrap') %>
     <title>Panier</title>
-  </head>
-  <body style="margin-top: 60px;">
-    <%- include('./partials/nav') %>
+</head>
+
+<body style="margin-top: 60px;">
+  <%- include('./partials/nav') %>
     <div class="container">
       <h1 class="mb-3 text-center">Votre panier </h1>
-      <% if (cartItems.length > 0) { %>
+      <% if (cartItems.length> 0) { %>
         <table class="table">
           <thead>
             <tr>
@@ -20,38 +22,50 @@
             </tr>
           </thead>
           <tbody>
-            <% cartItems.forEach((item, index) => { %>
+            <% cartItems.forEach((item, index)=> { %>
               <tr>
-                <td class="fs-4 text-capitalize"><%= item.product.nom %></td>
-                <td><%= item.product.prix %> €</td>
+                <td class="fs-4 text-capitalize">
+                  <%= item.product.nom %>
+                </td>
+                <td>
+                  <%= item.product.prix %> €
+                </td>
                 <td class="col-2">
                   <form action="/update-quantite/<%= item.product.id %>" method="POST">
                     <div class="input-group">
-                      <input id="quantite<%= index %>" type="string" name="quantite" value="<%= item.quantite %>"class="form-control rounded text-center">
-                      <button id="applyButton<%= index %>" data-index="<%= index %>" type="submit" class="btn btn-danger d-none">Appliquer</button>
+                      <input id="quantite<%= index %>" type="string" name="quantite" value="<%= item.quantite %>"
+                        class="form-control rounded text-center">
+                      <button id="applyButton<%= index %>" data-index="<%= index %>" type="submit"
+                        class="btn btn-danger d-none">Appliquer</button>
                     </div>
                   </form>
                 </td>
-                <td><span class="text-success fw-bold "><%= item.total %> €</span></td>
+                <td><span class="text-success fw-bold ">
+                    <%= item.total %> €
+                  </span></td>
                 <td>
                   <a href="/removeProduct/<%= item.product.id %>" class="btn btn-danger fst-italic">
                     <i class="bi bi-dash-circle"></i>
                   </a>
                 </td>
               </tr>
-            <% }) %>
+              <% }) %>
           </tbody>
         </table>
-        <p class="text-end fs-4 fw-bold">Prix total : <span class="text-success"><%= prix_total %> €</span></p>
+        <p class="text-end fs-4 fw-bold">Prix total : <span class="text-success">
+            <%= prix_total %> €
+          </span></p>
         <form action="/validateBasket" method="POST" class="mb-3">
           <div class="mb-3">
             <% if (user) { %>
-              <p class="fs-4"><strong>Votre email : </strong><span class="text-success"><%= user.email %></span></p>
+              <p class="fs-4"><strong>Votre email : </strong><span class="text-success">
+                  <%= user.email %>
+                </span></p>
               <input type="hidden" name="email" value="<%= user.email %>">
-            <% } else { %>
-              <label for="email" class="form-label">Votre email :</label>
-              <input type="email" name="email" class="form-control" required>
-            <% } %>
+              <% } else { %>
+                <label for="email" class="form-label">Votre email :</label>
+                <input type="email" name="email" class="form-control" required>
+                <% } %>
           </div>
           <a href="/products" class="btn btn-warning">
             <i class="bi bi-plus-lg"></i>
@@ -62,18 +76,19 @@
           <input type="hidden" name="prix_total" value="<%= prix_total %>">
           <button id="validateButton" type="submit" class="btn btn-success">Valider le panier</button>
         </form>
-      <% } else { %>
-        <p>Votre panier est vide.</p>
-      <% } %>
+        <% } else { %>
+          <p>Votre panier est vide.</p>
+          <% } %>
     </div>
     <script>
       // Afficher btn "appliquer" si quantité modifiée
       var inputs = document.querySelectorAll('[id^="quantite"]');
-      inputs.forEach(function(input) {
+      inputs.forEach(function (input) {
         var button = input.nextElementSibling;
-        input.addEventListener('input', function() { button.classList.remove('d-none');});
-        button.addEventListener('click', function() { button.classList.add('d-none');});
+        input.addEventListener('input', function () { button.classList.remove('d-none'); });
+        button.addEventListener('click', function () { button.classList.add('d-none'); });
       });
     </script>
-  </body>
+</body>
+
 </html>
