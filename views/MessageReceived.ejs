@@ -15,24 +15,21 @@
         <div class="align-items-center ">
           <h1 class="fw-bold mt-2">
             Reçus par :  
-            <span class="fw-light fs-3 fst-italic text-success">
+            <span class="fw-bold fs-3 fst-italic text-success">
               <% if (user && user.role === "admin") { %> admin@admin 
-                <%} else { %> <%= user.email %> <% } %>
+                <%} else { %> <%= user.prenom %> <% } %>
             </span>
           </h1>
           <div class="d-flex justify-content-center w-100 text-center gap-2" > 
             <div class="fixed-top text-end me-2"style="margin-top:70px">
               <button id="toggle" class="btn b btn-secondary "><i class="bi bi-gear-fill "></i></button>
             </div>
-            <div class="fst-italic">
-              <span class="fw-light fs-3 fst-italic text-success">
-                <% if (user && user.role !== "admin") { %> 
-                  <a href="/message/new" class="btn btn-success mb-2">Ecrire...</a> 
-                <%} %>
-              </span>
-            </div>
-            <div class="fst-italic mb-2" >
-                <a href="/messagebox/sent" class="btn btn-info">Messages Envoyés</a>
+            <div class="fst-italic fw-bold mb-2" >
+                Voir mes messages envoyés
+                <a href="/messagebox/sent" 
+                  class="text-underline fw-bold btn-sm btn btn-info mb-2">
+                  <u>ici</u>
+                </a>
             </div>
           </div>
         </div>
