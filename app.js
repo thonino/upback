@@ -223,131 +223,95 @@ app.delete("/delete-user/:id", (req, res) => {
 // -------------------- C O U R R I E R -------------------- //
 
 // Envoier courrier
-app.get("/message/new", (req, res) => {
-  if (!req.session.user) {
-    return res.redirect("/login");
-  }
+app.get('/message/new', (req, res) => {
+  if (!req.session.user){return res.redirect('/login');}
   const user = req.session.user;
-  const heure = moment().format("DD-MM-YYYY, h:mm:ss");
+  const heure = moment().format('DD-MM-YYYY, h:mm:ss');
   const expediteur = req.query.expediteur;
   const destinataire = req.query.destinataire;
-  res.render("messageForm", {
+  res.render('messageForm', {
     user: user,
     heure: heure,
     expediteur: expediteur,
-    destinataire: destinataire,
+    destinataire: destinataire
   });
 });
-app.post("/message", (req, res) => {
-  if (!req.session.user) {
-    return res.redirect("/login");
-  }
-  const heure = moment().format("DD-MM-YYYY, h:mm:ss");
+app.post('/message', (req, res) => {
+  if (!req.session.user){return res.redirect('/login');}
+  const heure = moment().format('DD-MM-YYYY, h:mm:ss');
   const messageData = new Message({
     expediteur: req.body.expediteur,
     destinataire: req.body.destinataire,
     texte: req.body.texte,
-    date: heure,
+    date: heure
   });
-  messageData
-    .save()
-    .then(() => res.redirect(`/messagebox/sent`))
-    .catch((err) => {
-      console.log(err);
-    });
+  messageData.save()
+  .then(() => res.redirect(`/messagebox/sent`))
+  .catch(err => {console.log(err);});
 });
 
 // Courriers reçus
-app.get("/messagebox/received", (req, res) => {
-  if (!req.session.user) {
-    return res.redirect("/login");
-  }
-  const heure = moment().format("DD-MM-YYYY, h:mm:ss");
+app.get('/messagebox/received', (req, res) => {
+  if (!req.session.user) {return res.redirect('/login');}
+  const heure = moment().format('DD-MM-YYYY, h:mm:ss');
   const user = req.session.user;
-  const destinataire =
-    req.session.user.role === "admin" ? "admin@admin" : user.email;
+  const destinataire = req.session.user.role === "admin" ? "admin@admin" : user.email;
   Message.find({ destinataire })
     .then((messages) => {
-      res.render("MessageReceived", {
-        heure: heure,
-        user: user,
-        messages: messages,
-      });
+      res.render('MessageReceived',{heure: heure, user: user, messages: messages });
     })
-    .catch((err) => {
-      console.log(err);
-      res.redirect("/error");
-    });
+    .catch((err) => {console.log(err);res.redirect('/error');});
 });
 
 // Courriers Envoyés
-app.get("/messagebox/sent", (req, res) => {
-  if (!req.session.user) {
-    return res.redirect("/login");
-  }
-  const heure = moment().format("DD-MM-YYYY, h:mm:ss");
+app.get('/messagebox/sent', (req, res) => {
+  if (!req.session.user) {return res.redirect('/login');}
+  const heure = moment().format('DD-MM-YYYY, h:mm:ss');
   const user = req.session.user;
-  const expediteur =
-    req.session.user.role === "admin" ? "admin@admin" : user.email;
+  const expediteur = req.session.user.role === "admin" ? "admin@admin" : user.email;
   Message.find({ expediteur })
-    .then((messages) => {
-      res.render("MessageSent", {
-        heure: heure,
-        user: user,
-        messages: messages,
-      });
-    })
-    .catch((err) => {
-      console.log(err);
-      res.redirect("/error");
-    });
+  .then((messages)=>{res.render(
+    'MessageSent',{heure: heure, user: user, messages: messages });
+  })
+  .catch((err) => {console.log(err);res.redirect('/error');});
 });
 
 // Modifier courrier
-app.get("/edit-message/:id", (req, res) => {
+app.get('/edit-message/:id', (req, res) => {
   const user = req.session.user;
-  const heure = moment().format("DD-MM-YYYY, h:mm:ss");
+  const heure = moment().format('DD-MM-YYYY, h:mm:ss');
   Message.findById(req.params.id)
-    .then((message) => {
-      res.render("EditMessage", {
-        message: message,
-        user: user,
-        heure: heure,
-      });
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-});
-app.put("/edit-message/:id", (req, res) => {
-  const heure = moment().format("DD-MM-YYYY, h:mm:ss");
+    .then((message) => {res.render('EditMessage', { 
+      message: message , user: user, heure: heure });})
+    .catch(err => {console.log(err);});
+  });
+app.put('/edit-message/:id', (req, res) => {
+  const heure = moment().format('DD-MM-YYYY, h:mm:ss');
   const messageData = {
-    expediteur: req.body.expediteur,
+    expediteur:  req.body.expediteur,
     destinataire: req.body.destinataire,
     texte: req.body.texte,
-    date: heure,
+    date: heure
   };
   Message.findByIdAndUpdate(req.params.id, messageData)
-    .then(() => {
-      res.redirect(`/messagebox/sent`);
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-});
+    .then(() => {res.redirect(`/messagebox/sent`);})
+    .catch(err => {console.log(err);});
+  });
 
-// Effacer courrier
-app.delete("/delete-message/received/:messageId", (req, res) => {
-  const messageId = req.params.messageId;
-  Message.findByIdAndRemove(messageId)
-    .then(() => {
-      res.redirect(`/messagebox/received`);
-    })
-    .catch((err) => {
-      console.log(err);
-      res.redirect("/");
-    });
-});
+  // Effacer courrier reçu
+  app.delete('/delete-message/received/:messageId', (req, res) => {
+    const messageId = req.params.messageId;
+    Message.findByIdAndRemove(messageId)
+    .then(() => {res.redirect(`/messagebox/received`);})
+    .catch(err => {console.log(err);res.redirect('/'); });
+  });
+  // Effacer courrier envoyé
+  app.delete('/delete-message/sent/:messageId', (req, res) => {
+    const messageId = req.params.messageId;
+    Message.findByIdAndRemove(messageId)
+    .then(() => {res.redirect(`/messagebox/sent`);})
+    .catch(err => {console.log(err);res.redirect('/'); });
+  });
 
 // -------------------- P R O D U I T S -------------------- //
 

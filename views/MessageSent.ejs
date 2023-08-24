@@ -12,20 +12,23 @@
       <!-- parent dialogue-->
       <div class="d-flex flex-column w-100" style="margin-top:55px">
         <!-- Title -->
-        <div class="align-items-center mb-2">
-          <h1 class="fw-bold">
+        <div class="align-items-center ">
+          <h1 class="fw-bold mt-2">
             Envoyés par : 
-            <span class="fw-light fs-3 fst-italic text-success"><%= user.email %></span>
+            <span class="fw-bold fs-3 fst-italic text-success">
+              <% if (user && user.role === "admin") { %> admin@admin 
+              <%} else { %> <%= user.prenom %> <% } %>
+            </span>
           </h1>
           <div class="d-flex justify-content-center w-100 text-center gap-2" > 
             <div class="fixed-top text-end me-2"style="margin-top:70px">
               <button id="toggle" class="btn b btn-secondary "><i class="bi bi-gear-fill "></i></button>
             </div>
-            <div class="fst-italic">
-                <a href="/message/new" class="btn btn-success">Ecrire...</a>
-            </div>
-            <div class="fst-italic" >
-                <a href="/messagebox/received" class="btn btn-info">Emails Reçus</a>
+            <div class="fst-italic fw-bold">
+                Voir mes messages reçus
+                <a href="/messagebox/received" class="fw-bold btn btn-info mb-2">
+                  <u>ici</u>
+                </a>
             </div>
           </div>
         </div>
