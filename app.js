@@ -1,49 +1,46 @@
 //  - - - - - - - - -D E P E N D A N C E S- - - - - - - - - - //
 //                          M A I N                             //
-
 // express & express-session
 const express = require("express");
-
+const app = express();
 const session = require("express-session");
 const http = require("http");
-const app = express();
 const server = http.createServer(app);
 
-
 // Configurer express-session
-app.use(
-  session({
-    key: "userId",
-    secret: "1234",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      maxAge: 30*24 * 60 * 60 * 1000, 
-    },
-  })
-);
+app.use(session({
+  key: "userId",
+  secret: "1234",
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+    sameSite: 'none', 
+    secure: false,    
+  },
+}));
+
 
 // CORS :
 const cors = require("cors");
-app.use(cors({ 
-  origin: 'http://localhost:3000', 
+app.use(cors({
+  origin: 'http://localhost:3000',
   methods: 'GET, POST, PUT, DELETE',
   allowedHeaders: 'Content-Type, Authorization',
-  credentials: true 
+  credentials: true
 }));
 
-// bcrypt
-const bcrypt = require("bcrypt");
+// Parse JSON and urlencoded data
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// EJS :
+app.set("view engine", "ejs");
 
 // MongoDB Mongoose et dotenv
 require("dotenv").config();
 var mongoose = require("mongoose");
-const Message = require("./models/Message");
-const User = require("./models/User");
-const Invoice = require("./models/Invoice");
-const Basket = require("./models/Basket");
-const Product = require("./models/Product");
-const { log } = require("console");
 const url = process.env.DATABASE_URL;
 mongoose
   .connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -54,13 +51,14 @@ mongoose
     console.log(err);
   });
 
-// EJS :
-app.set("view engine", "ejs");
+const Message = require("./models/Message");
+const User = require("./models/User");
+const Invoice = require("./models/Invoice");
+const Basket = require("./models/Basket");
+const Product = require("./models/Product");
 
-// BodyParser
-const bodyParser = require("body-parser");
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// bcrypt
+const bcrypt = require("bcrypt");
 
 // Method-override :
 const methodOverride = require("method-override");
@@ -86,14 +84,10 @@ app.use("/public", express.static("public"));
 app.use("/uploads", express.static("uploads"));
 app.use("/cartItem.json", express.static("cartItem.json"));
 
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
 const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
-// npm install toobusy-js
+// Too busy
 const toobusy = require("toobusy-js");
 app.use(function (req, res, next) {
   if (toobusy()) {
@@ -135,25 +129,40 @@ app.post("/register", function (req, res) {
 });
 
 // Connexion
+app.get("/check-session", (req, res) => {
+  if (req.session && req.session.user) {
+    res.json({ isLoggedIn: true, user: req.session.user });
+  } else {
+    res.json({ isLoggedIn: false });
+  }
+});
+
 app.get("/login", (req, res) => {
   res.status(200).send("Login GET route");
 });
 app.post("/login", async (req, res) => {
-  const email = req.body.email;
-  const password = req.body.password;
-  // console.log("Node login : "+email, password);
-  const user = await User.findOne({ email });
-  if (!user) {
-    return res.status(400).json({ error: "Email invalide" });
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ success: false, error: "Email invalide" });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(400).json({ success: false, error: "Mot de passe invalide" });
+    }
+
+    req.session.user = user;
+    return res.json({ success: true, data: user });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: "Erreur serveur" });
   }
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-  if (!isPasswordValid) {
-    return res.status(400).json({ error: "Mot de passe invalide" });
-  }
-  req.session.user = user;
-  const data = user;
-  return res.json({ success: true, data });
 });
+
+
+
 
 
 
@@ -187,6 +196,7 @@ app.get("/edit-user/:id", (req, res) => {
       console.log(err);
     });
 });
+
 app.put("/edit-user/:id", (req, res) => {
   const userData = {};
   userData.prenom = req.body.prenom;
@@ -222,20 +232,23 @@ app.delete("/delete-user/:id", (req, res) => {
 
 // -------------------- C O U R R I E R -------------------- //
 
-// Envoier courrier
 app.get('/message/new', (req, res) => {
-  if (!req.session.user){return res.redirect('/login');}
+  if (!req.session.user) {
+    return res.status(401).json({ error: "Non autorisé" });
+  }
   const user = req.session.user;
   const heure = moment().format('DD-MM-YYYY, h:mm:ss');
   const expediteur = req.query.expediteur;
   const destinataire = req.query.destinataire;
-  res.render('messageForm', {
+  res.json({
     user: user,
     heure: heure,
     expediteur: expediteur,
     destinataire: destinataire
   });
 });
+
+
 app.post('/message', (req, res) => {
   if (!req.session.user){return res.redirect('/login');}
   const heure = moment().format('DD-MM-YYYY, h:mm:ss');
