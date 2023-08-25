@@ -244,7 +244,7 @@ app.get('/message/new', (req, res) => {
 
 
 app.post('/message', (req, res) => {
-  if (!req.session.user){return res.redirect('/login');}
+  if (!req.session.user){return res.status(401).json({ success: false, message: 'Non autorisé' });}
   const heure = moment().format('DD-MM-YYYY, h:mm:ss');
   const messageData = new Message({
     expediteur: req.body.expediteur,
@@ -252,10 +252,15 @@ app.post('/message', (req, res) => {
     texte: req.body.texte,
     date: heure
   });
+
   messageData.save()
-  .then(() => res.redirect(`/messagebox/sent`))
-  .catch(err => {console.log(err);});
+  .then(() => res.json({ success: true, message: 'Message envoyé avec succès' }))
+  .catch(err => {
+    console.log(err);
+    res.status(500).json({ success: false, message: 'Erreur lors de l\'envoi du message.' });
+  });
 });
+
 
 // Courriers reçus
 app.get('/messagebox/received', (req, res) => {
