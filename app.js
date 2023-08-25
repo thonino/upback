@@ -242,7 +242,6 @@ app.get('/message/new', (req, res) => {
   });
 });
 
-
 app.post('/message', (req, res) => {
   if (!req.session.user){return res.status(401).json({ success: false, message: 'Non autorisé' });}
   const heure = moment().format('DD-MM-YYYY, h:mm:ss');
@@ -263,20 +262,31 @@ app.post('/message', (req, res) => {
 
 
 // Courriers reçus
-app.get('/messagebox/received', (req, res) => {
-  if (!req.session.user) {return res.redirect('/login');}
+app.get('/messagereceived', (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({ error: 'Non autorisé' }); 
+  }
+
   const heure = moment().format('DD-MM-YYYY, h:mm:ss');
   const user = req.session.user;
   const destinataire = req.session.user.role === "admin" ? "admin@admin" : user.email;
   Message.find({ destinataire })
     .then((messages) => {
-      res.render('MessageReceived',{heure: heure, user: user, messages: messages });
+      res.json({
+        heure: heure,
+        user: user,
+        messages: messages
+      });
     })
-    .catch((err) => {console.log(err);res.redirect('/error');});
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json({ error: 'Erreur serveur' }); 
+    });
 });
 
+
 // Courriers Envoyés
-app.get('/messagebox/sent', (req, res) => {
+app.get('/messagesent', (req, res) => {
   if (!req.session.user) {return res.redirect('/login');}
   const heure = moment().format('DD-MM-YYYY, h:mm:ss');
   const user = req.session.user;
@@ -306,7 +316,7 @@ app.put('/edit-message/:id', (req, res) => {
     date: heure
   };
   Message.findByIdAndUpdate(req.params.id, messageData)
-    .then(() => {res.redirect(`/messagebox/sent`);})
+    .then(() => {res.redirect(`/messagesent`);})
     .catch(err => {console.log(err);});
   });
 
@@ -314,14 +324,14 @@ app.put('/edit-message/:id', (req, res) => {
   app.delete('/delete-message/received/:messageId', (req, res) => {
     const messageId = req.params.messageId;
     Message.findByIdAndRemove(messageId)
-    .then(() => {res.redirect(`/messagebox/received`);})
+    .then(() => {res.redirect(`/messagereceived`);})
     .catch(err => {console.log(err);res.redirect('/'); });
   });
   // Effacer courrier envoyé
   app.delete('/delete-message/sent/:messageId', (req, res) => {
     const messageId = req.params.messageId;
     Message.findByIdAndRemove(messageId)
-    .then(() => {res.redirect(`/messagebox/sent`);})
+    .then(() => {res.redirect(`/messagesent`);})
     .catch(err => {console.log(err);res.redirect('/'); });
   });
 
