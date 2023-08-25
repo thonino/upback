@@ -128,41 +128,35 @@ app.post("/register", function (req, res) {
     });
 });
 
+
+
 // Connexion
-app.get("/check-session", (req, res) => {
+app.get("/login", async (req, res) => {
   if (req.session && req.session.user) {
-    res.json({ isLoggedIn: true, user: req.session.user });
+      return res.json({ success: true, data: req.session.user });
   } else {
-    res.json({ isLoggedIn: false });
+      return res.status(200).send("Login GET route");
   }
 });
 
-app.get("/login", (req, res) => {
-  res.status(200).send("Login GET route");
-});
+
 app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ success: false, error: "Email invalide" });
     }
-
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(400).json({ success: false, error: "Mot de passe invalide" });
     }
-
     req.session.user = user;
     return res.json({ success: true, data: user });
   } catch (err) {
     return res.status(500).json({ success: false, error: "Erreur serveur" });
   }
 });
-
-
-
 
 
 
