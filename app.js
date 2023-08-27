@@ -299,28 +299,35 @@ app.get('/messagesent', (req, res) => {
 });
 
 // Modifier courrier
-app.get('/edit-message/:id', (req, res) => {
+app.get('/editmessage/:id', (req, res) => {
   const user = req.session.user;
   const heure = moment().format('DD-MM-YYYY, h:mm:ss');
   Message.findById(req.params.id)
-    .then((message) => {res.render('EditMessage', { 
-      message: message , user: user, heure: heure });})
-    .catch(err => {console.log(err);});
-  });
-app.put('/edit-message/:id', (req, res) => {
+    .then((message) => {
+      res.json({ message: message, user: user, heure: heure });
+    })
+    .catch(err => { console.log(err); });
+});
+
+app.put('/editmessage/:id', (req, res) => {
   const heure = moment().format('DD-MM-YYYY, h:mm:ss');
   const messageData = {
-    expediteur:  req.body.expediteur,
+    expediteur: req.body.expediteur,
     destinataire: req.body.destinataire,
     texte: req.body.texte,
-    date: heure
+    date: heure,
   };
   Message.findByIdAndUpdate(req.params.id, messageData)
-    .then(() => {res.redirect(`/messagesent`);})
-    .catch(err => {console.log(err);});
-  });
+    .then(() => {
+      res.json({ message: 'Message updated successfully!' });
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).json({ error: 'An error occurred while updating the message' });
+    });
+});
 
-  // Effacer courrier reçu
+  // Effacer courrier 
   app.delete('/deletemessage/:id', (req, res) => {
     const id = req.params.id;
     Message.findByIdAndRemove(id)
@@ -390,7 +397,7 @@ app.post("/product/edit/:id", upload.single("photo"), (req, res) => {
     { categorie, nom, prix, description, photo },
     { new: true }
   )
-    .then((updatedProduct) => {
+    .then((updatedProduct) => { 
       res.redirect("/products");
     })
     .catch((err) => res.render("error", { error: err.message }));
