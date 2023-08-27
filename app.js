@@ -227,9 +227,6 @@ app.delete("/delete-user/:id", (req, res) => {
 // -------------------- C O U R R I E R -------------------- //
 
 app.get('/message/new', (req, res) => {
-  if (!req.session.user) {
-    return res.status(401).json({ error: "Non autorisé" });
-  }
   const user = req.session.user;
   const heure = moment().format('DD-MM-YYYY, h:mm:ss');
   const expediteur = req.query.expediteur;
@@ -243,7 +240,6 @@ app.get('/message/new', (req, res) => {
 });
 
 app.post('/message', (req, res) => {
-  if (!req.session.user){return res.status(401).json({ success: false, message: 'Non autorisé' });}
   const heure = moment().format('DD-MM-YYYY, h:mm:ss');
   const messageData = new Message({
     expediteur: req.body.expediteur,
@@ -251,7 +247,6 @@ app.post('/message', (req, res) => {
     texte: req.body.texte,
     date: heure
   });
-
   messageData.save()
   .then(() => res.json({ success: true, message: 'Message envoyé avec succès' }))
   .catch(err => {
@@ -260,13 +255,8 @@ app.post('/message', (req, res) => {
   });
 });
 
-
 // Courriers reçus
 app.get('/messagereceived', (req, res) => {
-  if (!req.session.user) {
-    return res.status(401).json({ error: 'Non autorisé' }); 
-  }
-
   const heure = moment().format('DD-MM-YYYY, h:mm:ss');
   const user = req.session.user;
   const destinataire = req.session.user.role === "admin" ? "admin@admin" : user.email;
@@ -287,15 +277,25 @@ app.get('/messagereceived', (req, res) => {
 
 // Courriers Envoyés
 app.get('/messagesent', (req, res) => {
-  if (!req.session.user) {return res.redirect('/login');}
+  if (!req.session.user) {
+    return res.status(401).json({ error: 'Non autorisé' });
+  }
+
   const heure = moment().format('DD-MM-YYYY, h:mm:ss');
   const user = req.session.user;
   const expediteur = req.session.user.role === "admin" ? "admin@admin" : user.email;
   Message.find({ expediteur })
-  .then((messages)=>{res.render(
-    'MessageSent',{heure: heure, user: user, messages: messages });
+  .then((messages)=>{
+    res.json({
+      heure: heure, 
+      user: user, 
+      messages: messages 
+    });
   })
-  .catch((err) => {console.log(err);res.redirect('/error');});
+  .catch((err) => {
+    console.log(err);
+    res.status(500).json({ error: 'Erreur serveur' }); 
+  });
 });
 
 // Modifier courrier
@@ -321,19 +321,13 @@ app.put('/edit-message/:id', (req, res) => {
   });
 
   // Effacer courrier reçu
-  app.delete('/delete-message/received/:messageId', (req, res) => {
-    const messageId = req.params.messageId;
-    Message.findByIdAndRemove(messageId)
-    .then(() => {res.redirect(`/messagereceived`);})
-    .catch(err => {console.log(err);res.redirect('/'); });
+  app.delete('/deletemessage/:id', (req, res) => {
+    const id = req.params.id;
+    Message.findByIdAndRemove(id)
+    .then(() => res.sendStatus(204))
+    .catch((err) => res.status(500).json({ error: err.message }));
   });
-  // Effacer courrier envoyé
-  app.delete('/delete-message/sent/:messageId', (req, res) => {
-    const messageId = req.params.messageId;
-    Message.findByIdAndRemove(messageId)
-    .then(() => {res.redirect(`/messagesent`);})
-    .catch(err => {console.log(err);res.redirect('/'); });
-  });
+
 
 // -------------------- P R O D U I T S -------------------- //
 
