@@ -80,7 +80,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // Donner accès au dossier public
-app.use("/public", express.static("public"));
+app.use(express.static("public"));
 app.use("/uploads", express.static("uploads"));
 app.use("/cartItem.json", express.static("cartItem.json"));
 
@@ -335,6 +335,7 @@ app.put('/editmessage/:id', (req, res) => {
     .catch((err) => res.status(500).json({ error: err.message }));
   });
 
+  
 
 // -------------------- P R O D U I T S -------------------- //
 
