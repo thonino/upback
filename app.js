@@ -352,6 +352,8 @@ app.get("/products", (req, res) => {
     .catch((err) => console.log(err));
 });
 
+
+
 // Ajouter produit
 app.get("/product/new", (req, res) => {
   const user = req.session.user;
