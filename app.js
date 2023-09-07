@@ -35,6 +35,10 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+
+// bcrypt
+const bcrypt = require("bcrypt");
+
 // EJS :
 app.set("view engine", "ejs");
 
@@ -57,8 +61,7 @@ const Invoice = require("./models/Invoice");
 const Basket = require("./models/Basket");
 const Product = require("./models/Product");
 
-// bcrypt
-const bcrypt = require("bcrypt");
+
 
 // Method-override :
 const methodOverride = require("method-override");
@@ -111,21 +114,28 @@ app.get("/register", (req, res) => {
   const user = req.session.user;
   res.json(user);
 });
-app.post("/register", function (req, res) {
-  const userData = new User({
-    prenom: req.body.prenom,
-    email: req.body.email,
-    password: bcrypt.hashSync(req.body.password, 10),
-    role: req.body.role,
+app.post("/register/new", function (req, res) {
+  const prenom = req.body.prenom;
+  const email = req.body.email;
+  const password = bcrypt.hashSync(req.body.password, 10);
+  const role = req.body.role;
+  // console.log(prenom, email, password, role);
+  const formData = new User({
+    prenom,
+    email,
+    password, 
+    role,
   });
-  userData
-    .save()
-    .then(() => {
-      res.redirect("/login");
-    })
-    .catch((err) => {
-      console.log(err);
-    });
+  
+  formData
+  .save()
+  .then(() => {
+    res.json({ success: true, message: "Inscription réussie!" });
+  })
+  .catch((err) => {
+    console.error(err);
+    res.status(500).json({ success: false, error: "Erreur lors de l'inscription" });
+  });
 });
 
 
