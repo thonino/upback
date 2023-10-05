@@ -47,7 +47,12 @@ require("dotenv").config();
 var mongoose = require("mongoose");
 const url = process.env.DATABASE_URL;
 mongoose
-  .connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
+.connect(url, { 
+  useNewUrlParser: true, 
+  useUnifiedTopology: true,
+  useCreateIndex: true,
+  useFindAndModify: false,
+})
   .then(() => {
     console.log("MongoDB connected");
   })
@@ -101,7 +106,6 @@ app.use(function (req, res, next) {
 });
 
 const helmet = require('helmet');
-
 app.use(
   helmet.contentSecurityPolicy({
     directives: {
@@ -621,9 +625,4 @@ app.get("/payementsuccess/:invoiceId", async (req, res) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
-});
-
-
-server.listen(5000, () => {
-  console.log("Serveur http://localhost:5000");
 });
