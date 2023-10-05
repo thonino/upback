@@ -1,10 +1,13 @@
+//  - - - - - - - - -D E P E N D A N C E S- - - - - - - - - - //
+//                          M A I N                             //
 const express = require('express');
 const helmet = require('helmet');
 const path = require('path');
+const app = express();
+const PORT = process.env.PORT || 5000;
 const session = require("express-session");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
-require("dotenv").config();
 const mongoose = require("mongoose");
 const methodOverride = require("method-override");
 const moment = require("moment");
@@ -12,34 +15,37 @@ const multer = require("multer");
 const cookieParser = require("cookie-parser");
 const toobusy = require("toobusy-js");
 
-const app = express();
-const PORT = process.env.PORT || 5000;
+// Set the view engine
+app.set('views', path.join(__dirname, 'views'));
+app.set("view engine", "ejs");
 
-// Security middlewares
-app.use(helmet()); // Utiliser Helmet pour la sécurité
-app.use(helmet.contentSecurityPolicy({
+// MIDDLEWARES
+app.use(helmet());  // Enable security middleware
+app.use(helmet.contentSecurityPolicy({  // Set Content-Security-Policy
   directives: {
     defaultSrc: ["'self'"],
     scriptSrc: ["'self'", "'unsafe-inline'"],
-    imgSrc: ["'self'", "data:", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com"],
-    styleSrc: ["'self'", "'unsafe-inline'"],
-    connectSrc: ["'self'", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com"],
-    fontSrc: ["'self'", "https://fonts.gstatic.com"],
-    objectSrc: ["'none'"],
-    mediaSrc: ["'self'"],
-    frameAncestors: ["'self'"],
-    formAction: ["'self'"],
+    imgSrc: ["'self'", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com"]
   }
 }));
 
-app.use(cors({
+app.use(cors({ // Enable CORS
   origin: 'http://localhost:3000',
   methods: 'GET, POST, PUT, DELETE',
   allowedHeaders: 'Content-Type, Authorization',
   credentials: true
 }));
 
-// Too busy middleware
+// Serve static files
+app.use(express.static("public"));
+app.use("/uploads", express.static("uploads"));
+app.use("/cartItem.json", express.static("cartItem.json"));
+
+// Parse JSON and urlencoded data
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Too busy
 app.use(function (req, res, next) {
   if (toobusy()) {
     res.status(503).send("Server too busy");
@@ -48,7 +54,7 @@ app.use(function (req, res, next) {
   }
 });
 
-// Express session
+// Configurer express-session
 app.use(session({
   key: "userId",
   secret: "1234",
@@ -62,30 +68,28 @@ app.use(session({
   },
 }));
 
-// Body parser middlewares
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// EJS
-app.set('views', path.join(__dirname, 'views'));
-app.set("view engine", "ejs");
-
-// MongoDB
+// MongoDB, Mongoose, and dotenv
+require("dotenv").config();
 const url = process.env.DATABASE_URL;
-mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => { console.log("MongoDB connected"); })
-  .catch((err) => { console.log(err); });
+mongoose
+  .connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => {
+    console.log("MongoDB connected");
+  })
+  .catch((err) => {
+    console.log(err);
+  });
 
-// Models
 const Message = require("./models/Message");
 const User = require("./models/User");
 const Invoice = require("./models/Invoice");
 const Basket = require("./models/Basket");
 const Product = require("./models/Product");
 
-// Other middlewares
+// Method-override
 app.use(methodOverride("_method"));
 
+// Moment & Multer
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "uploads/");
@@ -96,11 +100,8 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-app.use(express.static("public"));
-app.use("/uploads", express.static("uploads"));
-app.use("/cartItem.json", express.static("cartItem.json"));
-
 app.use(cookieParser());
+
 
 //  - - - - - - - - - - U S E R - - - - - - - - - - - //
 
