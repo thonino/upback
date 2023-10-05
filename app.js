@@ -100,17 +100,17 @@ app.use(function (req, res, next) {
   }
 });
 
-const helmet = require('helmet');
-app.use(
-  helmet.contentSecurityPolicy({
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com"],
-      iconSrc: ["'self'", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com"],
-    },
-  })
-);
+// const helmet = require('helmet');
+// app.use(
+//   helmet.contentSecurityPolicy({
+//     directives: {
+//       defaultSrc: ["'self'"],
+//       scriptSrc: ["'self'", "'unsafe-inline'"],
+//       imgSrc: ["'self'", "data:", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com"],
+//       iconSrc: ["'self'", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com"],
+//     },
+//   })
+// );
 
 
 //  - - - - - - - - - - U S E R - - - - - - - - - - - //
