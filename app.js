@@ -111,8 +111,8 @@ app.use(
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com"],
-      iconSrc: ["'self'", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com"],
+      // imgSrc: ["'self'", "data:", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com"],
+      // iconSrc: ["'self'", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com"],
     },
   })
 );
