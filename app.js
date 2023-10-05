@@ -5,9 +5,8 @@ const express = require('express');
 const helmet = require('helmet');
 const path = require('path');
 const app = express();
+const PORT = process.env.PORT || 5000;
 const session = require("express-session");
-const http = require("http");
-const server = http.createServer(app);
 
 // Configurer express-session
 app.use(session({
@@ -107,16 +106,9 @@ app.use(function (req, res, next) {
 
 app.use(helmet.contentSecurityPolicy({
   directives: {
-    defaultSrc: ["'self'"],
-    scriptSrc: ["'self'", "'unsafe-inline'"],
-    imgSrc: ["'self'", "data:", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com"],
-    styleSrc: ["'self'", "'unsafe-inline'"],
-    connectSrc: ["'self'", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com"],
-    fontSrc: ["'self'", "https://fonts.gstatic.com"],
-    objectSrc: ["'none'"],
-    mediaSrc: ["'self'"],
-    frameAncestors: ["'self'"],
-    formAction: ["'self'"],
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com"]
   }
 }));
 
@@ -627,6 +619,6 @@ app.get("/payementsuccess/:invoiceId", async (req, res) => {
 });
 
 
-server.listen(PORT, () => {
+app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
