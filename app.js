@@ -21,6 +21,7 @@ app.use(session({
   },
 }));
 
+app.set('views', path.join(__dirname, 'views'));
 
 // CORS :
 const cors = require("cors");
@@ -100,17 +101,18 @@ app.use(function (req, res, next) {
   }
 });
 
-// const helmet = require('helmet');
-// app.use(
-//   helmet.contentSecurityPolicy({
-//     directives: {
-//       defaultSrc: ["'self'"],
-//       scriptSrc: ["'self'", "'unsafe-inline'"],
-//       imgSrc: ["'self'", "data:", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com"],
-//       iconSrc: ["'self'", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com"],
-//     },
-//   })
-// );
+const helmet = require('helmet');
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://www.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com"],
+      iconSrc: ["'self'", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com"],
+    },
+  })
+);
 
 
 //  - - - - - - - - - - U S E R - - - - - - - - - - - //
