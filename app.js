@@ -100,6 +100,18 @@ app.use(function (req, res, next) {
   }
 });
 
+const helmet = require('helmet');
+
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com"],
+    },
+  })
+);
+
 //  - - - - - - - - - - U S E R - - - - - - - - - - - //
 
 // Page d'accueil
@@ -606,10 +618,10 @@ app.get("/payementsuccess/:invoiceId", async (req, res) => {
 });
 
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+// const PORT = process.env.PORT || 5000;
+// app.listen(PORT, () => {
+//     console.log(`Server is running on port ${PORT}`);
+// });
 
 
 server.listen(5000, () => {
