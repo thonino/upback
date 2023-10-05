@@ -3,6 +3,7 @@
 // express & express-session
 const express = require("express");
 const app = express();
+const path = require('path');
 const session = require("express-session");
 const http = require("http");
 const server = http.createServer(app);
@@ -22,6 +23,7 @@ app.use(session({
 }));
 
 app.set('views', path.join(__dirname, 'views'));
+
 
 // CORS :
 const cors = require("cors");
