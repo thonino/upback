@@ -108,9 +108,16 @@ app.use(function (req, res, next) {
 
 app.use(helmet.contentSecurityPolicy({
   directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com"]
+    defaultSrc: ["'self'"],
+    scriptSrc: ["'self'", "'unsafe-inline'"],
+    imgSrc: ["'self'", "data:", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com"],
+    styleSrc: ["'self'", "'unsafe-inline'"],
+    connectSrc: ["'self'", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com"],
+    fontSrc: ["'self'", "https://fonts.gstatic.com"],
+    objectSrc: ["'none'"],
+    mediaSrc: ["'self'"],
+    frameAncestors: ["'self'"],
+    formAction: ["'self'"],
   }
 }));
 
