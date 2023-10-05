@@ -1,9 +1,11 @@
 //  - - - - - - - - -D E P E N D A N C E S- - - - - - - - - - //
 //                          M A I N                             //
 // express & express-session
-const express = require("express");
-const app = express();
+const express = require('express');
+const helmet = require('helmet');
 const path = require('path');
+const app = express();
+const PORT = process.env.PORT || 5000;
 const session = require("express-session");
 const http = require("http");
 const server = http.createServer(app);
@@ -103,18 +105,14 @@ app.use(function (req, res, next) {
   }
 });
 
-const helmet = require('helmet');
-app.use(
-  helmet.contentSecurityPolicy({
-    directives: {
+
+app.use(helmet.contentSecurityPolicy({
+  directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://www.gstatic.com"],
-      imgSrc: ["'self'", "data:", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com"],
-      iconSrc: ["'self'", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com"],
-    },
-  })
-);
+      imgSrc: ["'self'", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com"]
+  }
+}));
 
 
 //  - - - - - - - - - - U S E R - - - - - - - - - - - //
@@ -623,7 +621,6 @@ app.get("/payementsuccess/:invoiceId", async (req, res) => {
 });
 
 
-const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
