@@ -109,7 +109,7 @@ app.use(cookieParser());
 app.get("/", (req, res) => {
   const user = req.session.user;
   const heure = moment().format("DD-MM-YYYY, h:mm:ss");
-  res.render("home", { user: user, heure: heure });
+  res.render("Home", { user: user, heure: heure });
 });
 
 // Inscription
@@ -388,7 +388,7 @@ app.post("/product/new", upload.single("photo"), (req, res) => {
   nouveauProduct
     .save()
     .then(() => res.redirect("/products"))
-    .catch((err) => res.render("error", { error: err.message }));
+    .catch((err) => res.render("Error", { error: err.message }));
 });
 
 // Modifier produit
@@ -402,7 +402,7 @@ app.get("/product/edit/:id", (req, res) => {
       },
       { user: user }
     )
-    .catch((err) => res.render("error", { error: err.message }));
+    .catch((err) => res.render("Error", { error: err.message }));
 });
 app.post("/product/edit/:id", upload.single("photo"), (req, res) => {
   const productId = req.params.id;
@@ -416,7 +416,7 @@ app.post("/product/edit/:id", upload.single("photo"), (req, res) => {
     .then((updatedProduct) => { 
       res.redirect("/products");
     })
-    .catch((err) => res.render("error", { error: err.message }));
+    .catch((err) => res.render("Error", { error: err.message }));
 });
 
 // Supprimer produit
