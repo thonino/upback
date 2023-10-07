@@ -20,14 +20,14 @@ app.set('views', path.join(__dirname, 'views'));
 app.set("view engine", "ejs");
 
 // MIDDLEWARES
-app.use(helmet());  // Enable security middleware
-app.use(helmet.contentSecurityPolicy({  // Set Content-Security-Policy
+app.use(helmet.contentSecurityPolicy({  
   directives: {
     defaultSrc: ["'self'"],
     scriptSrc: ["'self'", "'unsafe-inline'"],
-    imgSrc: ["'self'", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com"]
+    imgSrc: ["'self'", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com", "https://your-image-source.com"]
   }
 }));
+
 
 app.use(cors({ // Enable CORS
   origin: 'http://localhost:3000',
