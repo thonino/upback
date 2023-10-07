@@ -24,7 +24,7 @@ app.use(helmet.contentSecurityPolicy({
   directives: {
     defaultSrc: ["'self'"],
     scriptSrc: ["'self'", "'unsafe-inline'"],
-    imgSrc: ["'self'", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com", "https://your-image-source.com"]
+    imgSrc: ["'self'", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com"]
   }
 }));
 
