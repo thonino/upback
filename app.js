@@ -2,7 +2,9 @@
 //                          M A I N                             //
 const express = require('express');
 const helmet = require('helmet');
+const path = require('path');
 const app = express();
+const PORT = process.env.PORT || 5000;
 const session = require("express-session");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
@@ -14,14 +16,16 @@ const cookieParser = require("cookie-parser");
 const toobusy = require("toobusy-js");
 
 // Set the view engine
+app.set('views', path.join(__dirname, 'views'));
 app.set("view engine", "ejs");
 
 // MIDDLEWARES
-app.use(helmet.contentSecurityPolicy({  
+app.use(helmet());  // Enable security middleware
+app.use(helmet.contentSecurityPolicy({  // Set Content-Security-Policy
   directives: {
     defaultSrc: ["'self'"],
     scriptSrc: ["'self'", "'unsafe-inline'"],
-    imgSrc: ["'self'", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com", "https://your-image-source.com"]
+    imgSrc: ["'self'", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com"]
   }
 }));
 
@@ -32,8 +36,8 @@ app.use(cors({ // Enable CORS
   credentials: true
 }));
 
-// Donner accès au dossier public
-app.use("/public", express.static("public"));
+// Serve static files
+app.use(express.static("public"));
 app.use("/uploads", express.static("uploads"));
 app.use("/cartItem.json", express.static("cartItem.json"));
 
@@ -605,6 +609,6 @@ app.get("/payementsuccess/:invoiceId", async (req, res) => {
 });
 
 
-app.listen(5000, () => {
-  console.log(`Server is running on port ${5000}`);
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
