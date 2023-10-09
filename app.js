@@ -28,13 +28,13 @@ app.use(helmet.contentSecurityPolicy({
   }
 }));
 
-
-app.use(cors({ // Enable CORS
-  origin: 'https://uppercase-front-b016249fb8c8.herokuapp.com',
+app.use(cors({ 
+  origin: 'https://uppercase-front-b016249fb8c8.herokuapp.com', 
   methods: 'GET, POST, PUT, DELETE',
   allowedHeaders: 'Content-Type, Authorization',
   credentials: true
 }));
+
 
 // Serve static files
 app.use(express.static("public"));
@@ -64,7 +64,7 @@ app.use(session({
     httpOnly: true,
     maxAge: 30 * 24 * 60 * 60 * 1000,
     sameSite: 'none', 
-    secure: false,    
+    secure: true,    
   },
 }));
 
