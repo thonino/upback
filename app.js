@@ -1,5 +1,5 @@
 //  - - - - - - - - -D E P E N D A N C E S- - - - - - - - - - //
-//                          M A I N                             //
+//                          L O C A L                            //
 const express = require('express');
 const helmet = require('helmet');
 const path = require('path');
@@ -33,7 +33,6 @@ app.use(cors({
   allowedHeaders: 'Content-Type, Authorization',
   credentials: true
 }));
-
 
 // Serve static files
 app.use(express.static("public"));
