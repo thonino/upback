@@ -1,10 +1,9 @@
 //  - - - - - - - - -D E P E N D A N C E S- - - - - - - - - - //
 //                          M A I N                             //
+// Dépendances
 const express = require('express');
 const helmet = require('helmet');
 const path = require('path');
-const app = express();
-const PORT = process.env.PORT || 5000;
 const session = require("express-session");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
@@ -15,12 +14,14 @@ const multer = require("multer");
 const cookieParser = require("cookie-parser");
 const toobusy = require("toobusy-js");
 
-// Set the view engine
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// Configuration
 app.set('views', path.join(__dirname, 'views'));
 app.set("view engine", "ejs");
 
-// MIDDLEWARES
-app.use(helmet.contentSecurityPolicy({  
+app.use(helmet.contentSecurityPolicy({
   directives: {
     defaultSrc: ["'self'"],
     scriptSrc: ["'self'", "'unsafe-inline'"],
@@ -28,24 +29,19 @@ app.use(helmet.contentSecurityPolicy({
   }
 }));
 
-app.use(cors({ 
-  origin: 'https://uppercase-front-b016249fb8c8.herokuapp.com', 
+app.use(cors({
+  origin: 'https://uppercase-front-b016249fb8c8.herokuapp.com',
   methods: 'GET, POST, PUT, DELETE',
   allowedHeaders: 'Content-Type, Authorization',
   credentials: true
 }));
 
-
-// Serve static files
 app.use(express.static("public"));
 app.use("/uploads", express.static("uploads"));
 app.use("/cartItem.json", express.static("cartItem.json"));
-
-// Parse JSON and urlencoded data
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Too busy
 app.use(function (req, res, next) {
   if (toobusy()) {
     res.status(503).send("Server too busy");
@@ -54,7 +50,6 @@ app.use(function (req, res, next) {
   }
 });
 
-// Configurer express-session
 app.use(session({
   key: "userId",
   secret: "1234",
@@ -63,44 +58,38 @@ app.use(session({
   cookie: {
     httpOnly: true,
     maxAge: 30 * 24 * 60 * 60 * 1000,
-    sameSite: 'none', 
-    secure: false,    
+    sameSite: 'none',
+    secure: false,
   },
 }));
 
-// MongoDB, Mongoose, and dotenv
 require("dotenv").config();
-const url = process.env.DATABASE_URL;
-mongoose
-  .connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => {
-    console.log("MongoDB connected");
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+mongoose.connect(process.env.DATABASE_URL, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log("MongoDB connected"))
+  .catch((err) => console.log(err));
 
+// Modèles
 const Message = require("./models/Message");
 const User = require("./models/User");
 const Invoice = require("./models/Invoice");
 const Basket = require("./models/Basket");
 const Product = require("./models/Product");
 
-// Method-override
 app.use(methodOverride("_method"));
 
-// Moment & Multer
+// Configuration de Multer
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/");
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.originalname);
-  },
+  destination: (req, file, cb) => cb(null, "uploads/"),
+  filename: (req, file, cb) => cb(null, file.originalname),
 });
 const upload = multer({ storage: storage });
 
 app.use(cookieParser());
+
+
+
+
+
 
 
 //  - - - - - - - - - - U S E R - - - - - - - - - - - //
@@ -609,6 +598,16 @@ app.get("/payementsuccess/:invoiceId", async (req, res) => {
 });
 
 
+// Servez les fichiers statiques de votre application front-end
+app.use(express.static(path.join(__dirname, 'client/build')));
+
+// Toutes les autres requêtes renvoient le fichier index.html, donc 
+// la gestion du routage côté client peut prendre le relais.
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+});
+
+// Démarrage du serveur
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
