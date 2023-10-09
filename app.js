@@ -19,14 +19,14 @@ const toobusy = require("toobusy-js");
 app.set('views', path.join(__dirname, 'views'));
 app.set("view engine", "ejs");
 
-// MIDDLEWARES
-app.use(helmet.contentSecurityPolicy({  
-  directives: {
-    defaultSrc: ["'self'"],
-    scriptSrc: ["'self'", "'unsafe-inline'"],
-    imgSrc: ["'self'", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com"]
-  }
-}));
+// // MIDDLEWARES
+// app.use(helmet.contentSecurityPolicy({  
+//   directives: {
+//     defaultSrc: ["'self'"],
+//     scriptSrc: ["'self'", "'unsafe-inline'"],
+//     imgSrc: ["'self'", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com"]
+//   }
+// }));
 
 
 app.use(cors({ // Enable CORS
