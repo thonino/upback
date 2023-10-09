@@ -30,7 +30,7 @@ app.use(helmet.contentSecurityPolicy({
 
 
 app.use(cors({ // Enable CORS
-  origin: 'http://localhost:3000',
+  origin: 'https://uppercase-front-b016249fb8c8.herokuapp.com/',
   methods: 'GET, POST, PUT, DELETE',
   allowedHeaders: 'Content-Type, Authorization',
   credentials: true
