@@ -4,7 +4,6 @@ const express = require('express');
 const helmet = require('helmet');
 const path = require('path');
 const app = express();
-const PORT = process.env.PORT || 5000;
 const session = require("express-session");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
@@ -24,7 +23,7 @@ app.use(helmet.contentSecurityPolicy({
   directives: {
     defaultSrc: ["'self'"],
     scriptSrc: ["'self'", "'unsafe-inline'"],
-    imgSrc: ["'self'", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com"]
+    imgSrc: ["'self'", "http://localhost:5000"]
   }
 }));
 
@@ -609,6 +608,6 @@ app.get("/payementsuccess/:invoiceId", async (req, res) => {
 });
 
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+app.listen(5000, () => {
+  console.log(`Server is running on 5000 ${5000}`);
 });
