@@ -24,12 +24,12 @@ app.use(helmet.contentSecurityPolicy({
   directives: {
     defaultSrc: ["'self'"],
     scriptSrc: ["'self'", "'unsafe-inline'"],
-    imgSrc: ["'self'", "https://uppercase-back-1eec3e8a2cf1.herokuapp.com"]
+    imgSrc: ["'self'", "https://uppercase-app-back-efd9a0ca1970.herokuapp.com"]
   }
 }));
 
 app.use(cors({ 
-  origin: 'https://uppercase-front-b016249fb8c8.herokuapp.com', 
+  origin: 'https://uppercase-app-front-6fca89d1dde9.herokuapp.com', 
   methods: 'GET, POST, PUT, DELETE',
   allowedHeaders: 'Content-Type, Authorization',
   credentials: true
