@@ -87,7 +87,7 @@ const Product = require("./models/Product");
 // Method-override
 app.use(methodOverride("_method"));
 
-// Moment & Multer
+// Multer
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "uploads/");
@@ -96,8 +96,13 @@ const storage = multer.diskStorage({
     cb(null, file.originalname);
   },
 });
-const upload = multer({ storage: storage });
 
+const upload = multer({ 
+  storage: storage,
+  limits: {
+    fileSize: 1024 * 1024 * 5 // Limite la taille du fichier à 5MB
+  }
+});
 app.use(cookieParser());
 
 
