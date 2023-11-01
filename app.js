@@ -1,5 +1,4 @@
-//  - - - - - - - - -D E P E N D A N C E S- - - - - - - - - - //
-//                          M A I N                             //
+//  - - - - - - - - -D E P E N D A N C E S  M A I N- - - - - - - - - - //
 const express = require('express');
 const helmet = require('helmet');
 const path = require('path');
@@ -103,7 +102,7 @@ const upload = multer({ storage: storage });
 app.use(cookieParser());
 
 
-//  - - - - - - - - - - U S E R - - - - - - - - - - - //
+//  - - - - - - - - - - R O U T E  U S E R - - - - - - - - - - - //
 
 // Page d'accueil
 app.get("/", (req, res) => {
@@ -128,7 +127,6 @@ app.post("/register/new", function (req, res) {
     password, 
     role,
   });
-  
   formData
   .save()
   .then(() => {
@@ -166,8 +164,6 @@ app.post("/login", async (req, res) => {
     return res.status(500).json({ success: false, error: "Erreur serveur" });
   }
 });
-
-
 
 // Déconnexion
 app.post("/logout", (req, res) => {
@@ -233,7 +229,7 @@ app.delete("/delete-user/:id", (req, res) => {
     });
 });
 
-// -------------------- C O U R R I E R -------------------- //
+// -------------------- R O U T E   C O U R R I E R -------------------- //
 
 app.get('/message/new', (req, res) => {
   const user = req.session.user;
@@ -288,7 +284,6 @@ app.get('/messagesent', (req, res) => {
   if (!req.session.user) {
     return res.status(401).json({ error: 'Non autorisé' });
   }
-
   const heure = moment().format('DD-MM-YYYY, h:mm:ss');
   const user = req.session.user;
   const expediteur = req.session.user.role === "admin" ? "admin@admin" : user.email;
@@ -345,7 +340,7 @@ app.put('/editmessage/:id', (req, res) => {
 
   
 
-// -------------------- P R O D U I T S -------------------- //
+// -------------------- R O U T E   P R O D U I T S -------------------- //
 
 // Afficher produits
 app.get("/products", (req, res) => {
@@ -420,7 +415,7 @@ app.delete("/product/delete/:id", (req, res) => {
     .catch((err) => res.status(500).json({ error: err.message }));
 });
 
-// -------------------- P A N I E R -------------------- //
+// -------------------- R O U T E   P A N I E R -------------------- //
 
 app.get('/basket', (req, res) => {
   const user = req.session.user;
@@ -468,21 +463,8 @@ app.post("/add-to-cart/:productId", async (req, res) => {
   res.redirect("/basket");
 });
 
-// Modifier Quantité d'un produit spécifique
-app.post("/update-quantite/:productId", (req, res) => {
-  const productId = req.params.productId;
-  const quantite = parseInt(req.body.quantite);
-  let cartItems = req.cookies.cartItems || [];
-  const item = cartItems.find(item => item.product.id === productId);
-  if (item) {
-    item.quantite = quantite;
-  }
-  res.cookie("cartItems", cartItems, { httpOnly: true, sameSite: 'none', secure: false });
-  res.json({ success: true, message: "Quantité mise à jour avec succès." });
-});
 
-// Modifier les Quantités de tous les produits
-app.post('/update-quantities', (req, res) => {
+app.post('/update-quantities', (req, res) => { // Modifier les Quantités de tous les produits
   const updatedQuantities = req.body;
   let cartItems = req.cookies.cartItems || [];
   for (const productId in updatedQuantities) {
@@ -517,8 +499,7 @@ app.post("/validateBasket", async (req, res) => {
   const heure = moment().format("DD-MM-YYYY, h:mm:ss");
   const products = req.cookies.cartItems; // récupère array Products
   try {
-    const basket = await Basket.create({
-      // Stocker dans la base de donnée
+    const basket = await Basket.create({ // Stocker dans la base de donnée
       prix_total: prixTotal,
       email: email,
       products: products,
@@ -532,7 +513,6 @@ app.post("/validateBasket", async (req, res) => {
     res.json({ success: false, message: "Une erreur lors de la validation du panier." });
   }
 });
-
 
 // Confirmation panier
 app.get("/order/:basketId", async (req, res) => {
@@ -551,7 +531,6 @@ app.get("/order/:basketId", async (req, res) => {
 
 // Paiement succès
 app.post("/createInvoice", async (req, res) => {
-  // Récupérer l'ID du panier depuis la requête
   const basketId = req.body.basketId;
   const heure = moment().format("DD-MM-YYYY, h:mm:ss");
   try {
@@ -580,7 +559,7 @@ app.get("/payementsuccess/:invoiceId", async (req, res) => {
   }
 });
 
-
+//------------------------L A N C E M E N T  S E R V E U R -----------------------//
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
