@@ -1,8 +1,8 @@
 //  - - - - - - - - -D E P E N D A N C E S- - - - - - - - - - //
 //                          L O C A L                            //
-const express = require('express');
-const helmet = require('helmet');
-const path = require('path');
+const express = require("express");
+const helmet = require("helmet");
+const path = require("path");
 const app = express();
 const session = require("express-session");
 const cors = require("cors");
@@ -15,24 +15,28 @@ const cookieParser = require("cookie-parser");
 const toobusy = require("toobusy-js");
 
 // Set the view engine
-app.set('views', path.join(__dirname, 'views'));
+app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
 // MIDDLEWARES
-app.use(helmet.contentSecurityPolicy({  
-  directives: {
-    defaultSrc: ["'self'"],
-    scriptSrc: ["'self'", "'unsafe-inline'"],
-    imgSrc: ["'self'", "http://localhost:5000"]
-  }
-}));
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "http://localhost:5000"],
+    },
+  })
+);
 
-app.use(cors({ 
-  origin: 'http://localhost:3000', 
-  methods: 'GET, POST, PUT, DELETE',
-  allowedHeaders: 'Content-Type, Authorization',
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    methods: "GET, POST, PUT, DELETE",
+    allowedHeaders: "Content-Type, Authorization",
+    credentials: true,
+  })
+);
 
 // Serve static files
 app.use(express.static("public"));
@@ -53,18 +57,20 @@ app.use(function (req, res, next) {
 });
 
 // Configurer express-session
-app.use(session({
-  key: "userId",
-  secret: "1234",
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    httpOnly: true,
-    maxAge: 30 * 24 * 60 * 60 * 1000,
-    sameSite: 'none', 
-    secure: false,    
-  },
-}));
+app.use(
+  session({
+    key: "userId",
+    secret: "1234",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+      sameSite: "none",
+      secure: false,
+    },
+  })
+);
 
 // MongoDB, Mongoose, and dotenv
 require("dotenv").config();
@@ -97,14 +103,13 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ 
+const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 1024 * 1024 * 5 // Limite la taille du fichier à 5MB
-  }
+    fileSize: 1024 * 1024 * 5, // Limite la taille du fichier à 5MB
+  },
 });
 app.use(cookieParser());
-
 
 //  - - - - - - - - - - U S E R - - - - - - - - - - - //
 
@@ -112,7 +117,7 @@ app.use(cookieParser());
 app.get("/", (req, res) => {
   const user = req.session.user;
   const heure = moment().format("DD-MM-YYYY, h:mm:ss");
-  res.render("Home", { user: user, heure: heure });
+  res.json({ user: user, heure: heure });
 });
 
 // Inscription
@@ -125,56 +130,42 @@ app.post("/register/new", function (req, res) {
   const email = req.body.email;
   const password = bcrypt.hashSync(req.body.password, 10);
   const role = req.body.role;
-  // console.log(prenom, email, password, role);
-  const formData = new User({
-    prenom,
-    email,
-    password, 
-    role,
+  const formData = new User({prenom,email,password,role,
   });
-  
-  formData
-  .save()
-  .then(() => {
-    res.json({ success: true, message: "Inscription réussie!" });
-  })
-  .catch((err) => {
-    console.error(err);
-    res.status(500).json({ success: false, error: "Erreur lors de l'inscription" });
-  });
+  formData .save() .then(() => {res.json({ 
+        success: true, message: "Inscription réussie!" });
+    })
+    .catch((err) => {console.error(err); res.status(500).json({ 
+          success: false, error: "Erreur lors de l'inscription" 
+        });
+    });
 });
-
-
 
 // Connexion
 app.get("/login", async (req, res) => {
   if (req.session && req.session.user) {
-      return res.json({ success: true, data: req.session.user });
-  } else {
-      return res.status(200).send("Login GET route");
-  }
+    return res.json({ success: true, data: req.session.user });
+  } else { return res.status(200).send("Aucune persone connecté");}
 });
-
-
 app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ success: false, error: "Email invalide" });
+    if (!user) { return res.status(400).json({ 
+        success: false, error: "Email invalide" });
     }
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      return res.status(400).json({ success: false, error: "Mot de passe invalide" });
+    const isPasswordValid = await bcrypt.compare(
+      password, user.password);
+    if (!isPasswordValid) { return res.status(400)
+        .json({ success: false, error: "Mot de passe invalide" });
     }
     req.session.user = user;
     return res.json({ success: true, data: user });
   } catch (err) {
-    return res.status(500).json({ success: false, error: "Erreur serveur" });
+    return res.status(500).json({ 
+      success: false, error: "Erreur serveur" });
   }
 });
-
-
 
 // Déconnexion
 app.post("/logout", (req, res) => {
@@ -192,7 +183,7 @@ app.get("/account", (req, res) => {
     return res.redirect("/login");
   }
   const user = req.session.user;
-  res.render("Account", { user: user });
+  res.json({ user: user });
 });
 
 // Modifier compte
@@ -200,7 +191,7 @@ app.get("/edit-user/:id", (req, res) => {
   const user = req.session.user;
   User.findById(req.params.id)
     .then((user) => {
-      res.render("EditFormUser", { user: user, user: user });
+      res.json({ user: user, user: user });
     })
     .catch((err) => {
       console.log(err);
@@ -242,91 +233,100 @@ app.delete("/delete-user/:id", (req, res) => {
 
 // -------------------- C O U R R I E R -------------------- //
 
-app.get('/message/new', (req, res) => {
+app.get("/message/new", (req, res) => {
   const user = req.session.user;
-  const heure = moment().format('DD-MM-YYYY, h:mm:ss');
+  const heure = moment().format("DD-MM-YYYY, h:mm:ss");
   const expediteur = req.query.expediteur;
   const destinataire = req.query.destinataire;
   res.json({
     user: user,
     heure: heure,
     expediteur: expediteur,
-    destinataire: destinataire
+    destinataire: destinataire,
   });
 });
 
-app.post('/message', (req, res) => {
-  const heure = moment().format('DD-MM-YYYY, h:mm:ss');
+app.post("/message", (req, res) => {
+  const heure = moment().format("DD-MM-YYYY, h:mm:ss");
   const messageData = new Message({
     expediteur: req.body.expediteur,
     destinataire: req.body.destinataire,
     texte: req.body.texte,
-    date: heure
+    date: heure,
   });
-  messageData.save()
-  .then(() => res.json({ success: true, message: 'Message envoyé avec succès' }))
-  .catch(err => {
-    console.log(err);
-    res.status(500).json({ success: false, message: 'Erreur lors de l\'envoi du message.' });
-  });
+  messageData
+    .save()
+    .then(() =>
+      res.json({ success: true, message: "Message envoyé avec succès" })
+    )
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json({
+        success: false,
+        message: "Erreur lors de l'envoi du message.",
+      });
+    });
 });
 
 // Courriers reçus
-app.get('/messagereceived', (req, res) => {
-  const heure = moment().format('DD-MM-YYYY, h:mm:ss');
+app.get("/messagereceived", (req, res) => {
+  const heure = moment().format("DD-MM-YYYY, h:mm:ss");
   const user = req.session.user;
-  const destinataire = req.session.user.role === "admin" ? "admin@admin" : user.email;
+  const destinataire =
+    req.session.user.role === "admin" ? "admin@admin" : user.email;
   Message.find({ destinataire })
     .then((messages) => {
       res.json({
         heure: heure,
         user: user,
-        messages: messages
+        messages: messages,
       });
     })
     .catch((err) => {
       console.log(err);
-      res.status(500).json({ error: 'Erreur serveur' }); 
+      res.status(500).json({ error: "Erreur serveur" });
     });
 });
 
-
 // Courriers Envoyés
-app.get('/messagesent', (req, res) => {
+app.get("/messagesent", (req, res) => {
   if (!req.session.user) {
-    return res.status(401).json({ error: 'Non autorisé' });
+    return res.status(401).json({ error: "Non autorisé" });
   }
 
-  const heure = moment().format('DD-MM-YYYY, h:mm:ss');
+  const heure = moment().format("DD-MM-YYYY, h:mm:ss");
   const user = req.session.user;
-  const expediteur = req.session.user.role === "admin" ? "admin@admin" : user.email;
+  const expediteur =
+    req.session.user.role === "admin" ? "admin@admin" : user.email;
   Message.find({ expediteur })
-  .then((messages)=>{
-    res.json({
-      heure: heure, 
-      user: user, 
-      messages: messages 
+    .then((messages) => {
+      res.json({
+        heure: heure,
+        user: user,
+        messages: messages,
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json({ error: "Erreur serveur" });
     });
-  })
-  .catch((err) => {
-    console.log(err);
-    res.status(500).json({ error: 'Erreur serveur' }); 
-  });
 });
 
 // Modifier courrier
-app.get('/editmessage/:id', (req, res) => {
+app.get("/editmessage/:id", (req, res) => {
   const user = req.session.user;
-  const heure = moment().format('DD-MM-YYYY, h:mm:ss');
+  const heure = moment().format("DD-MM-YYYY, h:mm:ss");
   Message.findById(req.params.id)
     .then((message) => {
       res.json({ message: message, user: user, heure: heure });
     })
-    .catch(err => { console.log(err); });
+    .catch((err) => {
+      console.log(err);
+    });
 });
 
-app.put('/editmessage/:id', (req, res) => {
-  const heure = moment().format('DD-MM-YYYY, h:mm:ss');
+app.put("/editmessage/:id", (req, res) => {
+  const heure = moment().format("DD-MM-YYYY, h:mm:ss");
   const messageData = {
     expediteur: req.body.expediteur,
     destinataire: req.body.destinataire,
@@ -335,23 +335,23 @@ app.put('/editmessage/:id', (req, res) => {
   };
   Message.findByIdAndUpdate(req.params.id, messageData)
     .then(() => {
-      res.json({ message: 'Message updated successfully!' });
+      res.json({ message: "Message updated successfully!" });
     })
-    .catch(err => {
+    .catch((err) => {
       console.log(err);
-      res.status(500).json({ error: 'An error occurred while updating the message' });
+      res
+        .status(500)
+        .json({ error: "An error occurred while updating the message" });
     });
 });
 
-  // Effacer courrier 
-  app.delete('/deletemessage/:id', (req, res) => {
-    const id = req.params.id;
-    Message.findByIdAndRemove(id)
+// Effacer courrier
+app.delete("/deletemessage/:id", (req, res) => {
+  const id = req.params.id;
+  Message.findByIdAndRemove(id)
     .then(() => res.sendStatus(204))
     .catch((err) => res.status(500).json({ error: err.message }));
-  });
-
-  
+});
 
 // -------------------- P R O D U I T S -------------------- //
 
@@ -368,15 +368,13 @@ app.get("/products", (req, res) => {
     .catch((err) => console.log(err));
 });
 
-
-
 // Ajouter produit
 app.get("/product/new", (req, res) => {
   const user = req.session.user;
   if (!user || user.role !== "admin") {
     return res.redirect("/login");
   }
-  res.render("ProductForm", { user: user });
+  res.json({ user: user });
 });
 app.post("/product/new", upload.single("photo"), (req, res) => {
   const { categorie, nom, prix, description } = req.body;
@@ -391,7 +389,7 @@ app.post("/product/new", upload.single("photo"), (req, res) => {
   nouveauProduct
     .save()
     .then(() => res.redirect("/products"))
-    .catch((err) => res.render("Error", { error: err.message }));
+    .catch((err) => res.json({ error: err.message }));
 });
 
 // Modifier produit
@@ -405,7 +403,7 @@ app.get("/product/edit/:id", (req, res) => {
       },
       { user: user }
     )
-    .catch((err) => res.render("Error", { error: err.message }));
+    .catch((err) => res.json({ error: err.message }));
 });
 app.post("/product/edit/:id", upload.single("photo"), (req, res) => {
   const productId = req.params.id;
@@ -416,10 +414,10 @@ app.post("/product/edit/:id", upload.single("photo"), (req, res) => {
     { categorie, nom, prix, description, photo },
     { new: true }
   )
-    .then((updatedProduct) => { 
+    .then((updatedProduct) => {
       res.redirect("/products");
     })
-    .catch((err) => res.render("Error", { error: err.message }));
+    .catch((err) => res.json({ error: err.message }));
 });
 
 // Supprimer produit
@@ -432,22 +430,15 @@ app.delete("/product/delete/:id", (req, res) => {
 
 // -------------------- P A N I E R -------------------- //
 
-app.get('/basket', (req, res) => {
+app.get("/basket", (req, res) => {
   const user = req.session.user;
   let cartItems = req.cookies.cartItems || [];
   let prix_total = 0;
-
-  cartItems.forEach(item => {
-      item.total = item.product.prix * item.quantite;
-      prix_total += item.total;
+  cartItems.forEach((item) => {
+    item.total = item.product.prix * item.quantite;
+    prix_total += item.total;
   });
-
-  // Envoi de la réponse en JSON
-  res.json({
-      cartItems: cartItems,
-      user: user, 
-      prix_total: prix_total
-  });
+  res.json({ cartItems: cartItems, user: user, prix_total: prix_total });
 });
 
 // Ajouter au panier
@@ -464,11 +455,7 @@ app.post("/add-to-cart/:productId", async (req, res) => {
       const product = await Product.findById(productId);
       if (product) {
         cartItems.push({
-          product: {
-            id: product._id,
-            nom: product.nom,
-            prix: product.prix,
-          },
+          product: { id: product._id, nom: product.nom, prix: product.prix },
           quantite: 1,
         });
       }
@@ -476,39 +463,29 @@ app.post("/add-to-cart/:productId", async (req, res) => {
       console.log(error);
     }
   }
-  res.cookie("cartItems", cartItems, { httpOnly: true, sameSite: 'none', secure: true });
+  res.cookie("cartItems", cartItems, {
+    httpOnly: true,
+    sameSite: "none",
+    secure: true,
+  });
   res.redirect("/basket");
 });
 
-
-// Modifier Quantité d'un produit spécifique
-app.post("/update-quantite/:productId", (req, res) => {
-  const productId = req.params.productId;
-  const quantite = parseInt(req.body.quantite);
-  let cartItems = req.cookies.cartItems || [];
-  
-  const item = cartItems.find(item => item.product.id === productId);
-  if (item) {
-    item.quantite = quantite;
-  }
-
-  res.cookie("cartItems", cartItems, { httpOnly: true, sameSite: 'none', secure: false });
-  res.json({ success: true, message: "Quantité mise à jour avec succès." });
-});
-
 // Modifier les Quantités de tous les produits
-app.post('/update-quantities', (req, res) => {
+app.post("/update-quantities", (req, res) => {
   const updatedQuantities = req.body;
   let cartItems = req.cookies.cartItems || [];
-
   for (const productId in updatedQuantities) {
-      const item = cartItems.find(item => item.product.id === productId);
-      if (item) {
-          item.quantite = parseInt(updatedQuantities[productId]);
-      }
+    const item = cartItems.find((item) => item.product.id === productId);
+    if (item) {
+      item.quantite = parseInt(updatedQuantities[productId]);
+    }
   }
-
-  res.cookie("cartItems", cartItems, { httpOnly: true, sameSite: 'none', secure: true });
+  res.cookie("cartItems", cartItems, {
+    httpOnly: true,
+    sameSite: "none",
+    secure: true,
+  });
   res.json({ success: true, message: "Quantités mises à jour avec succès." });
 });
 
@@ -516,13 +493,14 @@ app.post('/update-quantities', (req, res) => {
 app.get("/removeProduct/:productId", (req, res) => {
   const productId = req.params.productId;
   let cartItems = req.cookies.cartItems || [];
-  
-  cartItems = cartItems.filter(item => item.product.id !== productId);
-  
-  res.cookie("cartItems", cartItems, { httpOnly: true, sameSite: 'none', secure: false });
+  cartItems = cartItems.filter((item) => item.product.id !== productId);
+  res.cookie("cartItems", cartItems, {
+    httpOnly: true,
+    sameSite: "none",
+    secure: false,
+  });
   res.json({ success: true, message: "Produit retiré avec succès." });
 });
-
 // Vider le panier
 app.get("/clearBasket", (req, res) => {
   res.clearCookie("cartItems");
@@ -535,10 +513,9 @@ app.post("/validateBasket", async (req, res) => {
   const email = req.body.email;
   const heure = moment().format("DD-MM-YYYY, h:mm:ss");
   const products = req.cookies.cartItems; // récupère array Products
-
   try {
+    // Stocker dans la base de donnée
     const basket = await Basket.create({
-      // Stocker dans la base de donnée
       prix_total: prixTotal,
       email: email,
       products: products,
@@ -546,29 +523,34 @@ app.post("/validateBasket", async (req, res) => {
     });
     const basketId = basket._id;
     res.clearCookie("cartItems"); // Vider le panier
-    // Envoyer l'email et l'id du panier sous forme de réponse JSON
     res.json({ success: true, email: email, basketId: basketId });
   } catch (error) {
     console.log(error);
-    // Renvoyer une erreur sous forme de réponse JSON
-    res.json({ success: false, message: "Une erreur est survenue lors de la validation du panier." });
+    res.json({
+      success: false,
+      message: "Une erreur est survenue lors de la validation du panier.",
+    });
   }
 });
 
-
 // Confirmation panier
 app.get("/order/:basketId", async (req, res) => {
-    const basketId = req.params.basketId;
-    try {
-        const basket = await Basket.findById(basketId);
-        if (!basket) {
-            return res.status(404).json({ success: false, message: "Panier non trouvé." });
-        }
-        res.json(basket);
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({ success: false, message: "Erreur lors de la récupération des détails du panier." });
+  const basketId = req.params.basketId;
+  try {
+    const basket = await Basket.findById(basketId);
+    if (!basket) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Panier non trouvé." });
     }
+    res.json(basket);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Erreur lors de la récupération des détails du panier.",
+    });
+  }
 });
 
 // Paiement succès
@@ -576,41 +558,31 @@ app.post("/createInvoice", async (req, res) => {
   // Récupérer l'ID du panier depuis la requête
   const basketId = req.body.basketId;
   const heure = moment().format("DD-MM-YYYY, h:mm:ss");
-
   try {
     const invoice = new Invoice({ basketId: basketId, date: heure });
     await invoice.save();
     const invoiceId = invoice._id;
-    
-    // Au lieu de rediriger, renvoyer l'ID de la facture dans une réponse JSON
     res.json({ success: true, invoiceId: invoiceId });
-
   } catch (error) {
     console.log(error);
-    res.status(500).json({ success: false, message: 'Erreur serveur.' });
+    res.status(500).json({ success: false, message: "Erreur serveur." });
   }
 });
 
 app.get("/payementsuccess/:invoiceId", async (req, res) => {
   const invoiceId = req.params.invoiceId;
   const user = req.session.user;
-
   try {
     const invoice = await Invoice.findById(invoiceId);
     if (!invoice) {
       return res.redirect("/erreur");
     }
-    res.render("PaymentSuccess", {
-      user: user,
-      basketId: invoice.basketId,
-      invoiceId: invoiceId,
-    });
+    res.json({ user: user, basketId: invoice.basketId, invoiceId: invoiceId });
   } catch (error) {
     console.log(error);
     res.redirect("/erreur");
   }
 });
-
 
 app.listen(5000, () => {
   console.log(`Server is running on 5000 ${5000}`);
