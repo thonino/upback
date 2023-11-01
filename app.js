@@ -109,7 +109,7 @@ app.use(cookieParser());
 app.get("/", (req, res) => {
   const user = req.session.user;
   const heure = moment().format("DD-MM-YYYY, h:mm:ss");
-  res.render("Home", { user: user, heure: heure });
+  res.json({ user: user, heure: heure });
 });
 
 // Inscription
@@ -122,7 +122,6 @@ app.post("/register/new", function (req, res) {
   const email = req.body.email;
   const password = bcrypt.hashSync(req.body.password, 10);
   const role = req.body.role;
-  // console.log(prenom, email, password, role);
   const formData = new User({
     prenom,
     email,
@@ -141,8 +140,6 @@ app.post("/register/new", function (req, res) {
   });
 });
 
-
-
 // Connexion
 app.get("/login", async (req, res) => {
   if (req.session && req.session.user) {
@@ -151,7 +148,6 @@ app.get("/login", async (req, res) => {
       return res.status(200).send("Login GET route");
   }
 });
-
 
 app.post("/login", async (req, res) => {
   try {
@@ -189,7 +185,7 @@ app.get("/account", (req, res) => {
     return res.redirect("/login");
   }
   const user = req.session.user;
-  res.render("Account", { user: user });
+  res.json({user: user});
 });
 
 // Modifier compte
@@ -197,7 +193,7 @@ app.get("/edit-user/:id", (req, res) => {
   const user = req.session.user;
   User.findById(req.params.id)
     .then((user) => {
-      res.render("EditFormUser", { user: user, user: user });
+      res.json({ user: user, user: user });
     })
     .catch((err) => {
       console.log(err);
@@ -287,7 +283,6 @@ app.get('/messagereceived', (req, res) => {
     });
 });
 
-
 // Courriers Envoyés
 app.get('/messagesent', (req, res) => {
   if (!req.session.user) {
@@ -365,15 +360,13 @@ app.get("/products", (req, res) => {
     .catch((err) => console.log(err));
 });
 
-
-
 // Ajouter produit
 app.get("/product/new", (req, res) => {
   const user = req.session.user;
   if (!user || user.role !== "admin") {
     return res.redirect("/login");
   }
-  res.render("ProductForm", { user: user });
+  res.json({ user: user });
 });
 app.post("/product/new", upload.single("photo"), (req, res) => {
   const { categorie, nom, prix, description } = req.body;
@@ -388,7 +381,7 @@ app.post("/product/new", upload.single("photo"), (req, res) => {
   nouveauProduct
     .save()
     .then(() => res.redirect("/products"))
-    .catch((err) => res.render("Error", { error: err.message }));
+    .catch((err) => res.json({ error: err.message }));
 });
 
 // Modifier produit
@@ -402,7 +395,7 @@ app.get("/product/edit/:id", (req, res) => {
       },
       { user: user }
     )
-    .catch((err) => res.render("Error", { error: err.message }));
+    .catch((err) => res.json({ error: err.message }));
 });
 app.post("/product/edit/:id", upload.single("photo"), (req, res) => {
   const productId = req.params.id;
@@ -416,7 +409,7 @@ app.post("/product/edit/:id", upload.single("photo"), (req, res) => {
     .then((updatedProduct) => { 
       res.redirect("/products");
     })
-    .catch((err) => res.render("Error", { error: err.message }));
+    .catch((err) => res.json({ error: err.message }));
 });
 
 // Supprimer produit
@@ -438,8 +431,6 @@ app.get('/basket', (req, res) => {
       item.total = item.product.prix * item.quantite;
       prix_total += item.total;
   });
-
-  // Envoi de la réponse en JSON
   res.json({
       cartItems: cartItems,
       user: user, 
@@ -477,18 +468,15 @@ app.post("/add-to-cart/:productId", async (req, res) => {
   res.redirect("/basket");
 });
 
-
 // Modifier Quantité d'un produit spécifique
 app.post("/update-quantite/:productId", (req, res) => {
   const productId = req.params.productId;
   const quantite = parseInt(req.body.quantite);
   let cartItems = req.cookies.cartItems || [];
-  
   const item = cartItems.find(item => item.product.id === productId);
   if (item) {
     item.quantite = quantite;
   }
-
   res.cookie("cartItems", cartItems, { httpOnly: true, sameSite: 'none', secure: false });
   res.json({ success: true, message: "Quantité mise à jour avec succès." });
 });
@@ -497,14 +485,12 @@ app.post("/update-quantite/:productId", (req, res) => {
 app.post('/update-quantities', (req, res) => {
   const updatedQuantities = req.body;
   let cartItems = req.cookies.cartItems || [];
-
   for (const productId in updatedQuantities) {
       const item = cartItems.find(item => item.product.id === productId);
       if (item) {
           item.quantite = parseInt(updatedQuantities[productId]);
       }
   }
-
   res.cookie("cartItems", cartItems, { httpOnly: true, sameSite: 'none', secure: true });
   res.json({ success: true, message: "Quantités mises à jour avec succès." });
 });
@@ -513,9 +499,7 @@ app.post('/update-quantities', (req, res) => {
 app.get("/removeProduct/:productId", (req, res) => {
   const productId = req.params.productId;
   let cartItems = req.cookies.cartItems || [];
-  
   cartItems = cartItems.filter(item => item.product.id !== productId);
-  
   res.cookie("cartItems", cartItems, { httpOnly: true, sameSite: 'none', secure: false });
   res.json({ success: true, message: "Produit retiré avec succès." });
 });
@@ -532,7 +516,6 @@ app.post("/validateBasket", async (req, res) => {
   const email = req.body.email;
   const heure = moment().format("DD-MM-YYYY, h:mm:ss");
   const products = req.cookies.cartItems; // récupère array Products
-
   try {
     const basket = await Basket.create({
       // Stocker dans la base de donnée
@@ -543,12 +526,10 @@ app.post("/validateBasket", async (req, res) => {
     });
     const basketId = basket._id;
     res.clearCookie("cartItems"); // Vider le panier
-    // Envoyer l'email et l'id du panier sous forme de réponse JSON
     res.json({ success: true, email: email, basketId: basketId });
   } catch (error) {
     console.log(error);
-    // Renvoyer une erreur sous forme de réponse JSON
-    res.json({ success: false, message: "Une erreur est survenue lors de la validation du panier." });
+    res.json({ success: false, message: "Une erreur lors de la validation du panier." });
   }
 });
 
@@ -564,7 +545,7 @@ app.get("/order/:basketId", async (req, res) => {
         res.json(basket);
     } catch (error) {
         console.log(error);
-        res.status(500).json({ success: false, message: "Erreur lors de la récupération des détails du panier." });
+        res.status(500).json({ success: false, message: "Erreur lors de la récupération du panier" });
     }
 });
 
@@ -573,15 +554,11 @@ app.post("/createInvoice", async (req, res) => {
   // Récupérer l'ID du panier depuis la requête
   const basketId = req.body.basketId;
   const heure = moment().format("DD-MM-YYYY, h:mm:ss");
-
   try {
     const invoice = new Invoice({ basketId: basketId, date: heure });
     await invoice.save();
     const invoiceId = invoice._id;
-    
-    // Au lieu de rediriger, renvoyer l'ID de la facture dans une réponse JSON
     res.json({ success: true, invoiceId: invoiceId });
-
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, message: 'Erreur serveur.' });
@@ -591,17 +568,12 @@ app.post("/createInvoice", async (req, res) => {
 app.get("/payementsuccess/:invoiceId", async (req, res) => {
   const invoiceId = req.params.invoiceId;
   const user = req.session.user;
-
   try {
     const invoice = await Invoice.findById(invoiceId);
     if (!invoice) {
       return res.redirect("/erreur");
     }
-    res.render("PaymentSuccess", {
-      user: user,
-      basketId: invoice.basketId,
-      invoiceId: invoiceId,
-    });
+    res.json({user: user,basketId: invoice.basketId,invoiceId: invoiceId,});
   } catch (error) {
     console.log(error);
     res.redirect("/erreur");
