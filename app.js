@@ -177,44 +177,47 @@ app.post("/logout", (req, res) => {
 
 // Compte user
 app.get("/account", (req, res) => {
-  if (!req.session.user) {
-    return res.redirect("/login");
-  }
+  if (!req.session.user){ return res.redirect("/login");}
   const user = req.session.user;
-  res.json({user: user});
+  res.json(user);
 });
 
 // Modifier compte
 app.get("/edit-user/:id", (req, res) => {
-  const user = req.session.user;
   User.findById(req.params.id)
-    .then((user) => {
-      res.json({ user: user, user: user });
-    })
-    .catch((err) => {
-      console.log(err);
-    });
+    .then((user) => { res.json(user); })
+    .catch((err) => { console.log(err); });
 });
 
-app.put("/edit-user/:id", (req, res) => {
-  const userData = {};
-  userData.prenom = req.body.prenom;
-  userData.email = req.body.email;
-  if (req.body.password !== "") {
-    userData.password = bcrypt.hashSync(req.body.password, 10);
+// Modifier compte
+app.post("/edit-user/:id", async (req, res) => {
+  const data = {
+    prenom: req.body.prenom,
+    email: req.body.email,
+  };
+
+  if (req.body.password) {
+    try {
+      const hashedPassword = bcrypt.hashSync(req.body.password, 10);
+      data.password = hashedPassword;
+    } catch (err) {
+      return res.status(500).json({ error: 'Erreur lors du hashage du mot de passe.' });
+    }
   }
-  if (!req.body.role) {
-    userData.role = req.body.roleDefault;
-  }
-  if (req.body.role) {
-    userData.role = req.body.role;
-  }
-  User.findByIdAndUpdate(req.params.id, userData)
-    .then(() => {
-      res.redirect(`/account`);
+
+  if (req.body.role) { data.role = req.body.role;} 
+  else {data.role = req.body.roleDefault;}
+
+  User.findByIdAndUpdate(req.params.id, data, { new: true })
+    .then((user) => {
+      res.status(200).json({
+        message: "Mise à jour réussie",
+        user: user 
+      });
     })
     .catch((err) => {
-      console.log(err);
+      console.error(err);
+      res.status(500).json({ error: "Erreur interne du serveur" });
     });
 });
 
