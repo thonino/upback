@@ -71,17 +71,18 @@ app.use(function (req, res, next) {
 // Configurer express-session
 session({
   key: "userId",
-  secret: "1234",
+  secret: 'votre_secret',
   resave: false,
-  saveUninitialized: false,
+  saveUninitialized: true,
+
   cookie: {
     httpOnly: true,
     maxAge: 30 * 24 * 60 * 60 * 1000,
     sameSite: "none",
-    secure: false,
+    secure: !true,
   },
 })
- 
+
 
 // MongoDB, Mongoose, and dotenv
 require("dotenv").config();
