@@ -69,8 +69,7 @@ app.use(function (req, res, next) {
 // }));
 
 // Configurer express-session
-const isProd = process.env.NODE_ENV === 'production';
-app.use(session({
+session({
   key: "userId",
   secret: "1234",
   resave: false,
@@ -79,9 +78,10 @@ app.use(session({
     httpOnly: true,
     maxAge: 30 * 24 * 60 * 60 * 1000,
     sameSite: "none",
-    secure: isProd, 
+    secure: false,
   },
-}));
+})
+ 
 
 // MongoDB, Mongoose, and dotenv
 require("dotenv").config();
