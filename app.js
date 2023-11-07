@@ -54,6 +54,21 @@ app.use(function (req, res, next) {
 });
 
 // Configurer express-session
+// const isProd = process.env.NODE_ENV === 'production';
+// app.use(session({
+//   key: "userId",
+//   secret: "1234",
+//   resave: false,
+//   saveUninitialized: false,
+//   cookie: {
+//     httpOnly: true,
+//     maxAge: 30 * 24 * 60 * 60 * 1000,
+//     sameSite: isProd ? 'None' : 'Lax', 
+//     secure: isProd, 
+//   },
+// }));
+
+// Configurer express-session
 const isProd = process.env.NODE_ENV === 'production';
 app.use(session({
   key: "userId",
@@ -63,7 +78,7 @@ app.use(session({
   cookie: {
     httpOnly: true,
     maxAge: 30 * 24 * 60 * 60 * 1000,
-    sameSite: isProd ? 'None' : 'Lax', 
+    sameSite: "none",
     secure: isProd, 
   },
 }));
