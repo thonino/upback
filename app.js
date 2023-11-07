@@ -232,7 +232,7 @@ app.delete("/delete-user/:id", (req, res) => {
     .catch((err) => { console.log(err); });
 });
 
-// -------------------- C O U R R I E R -------------------- //
+// -------------------- M E S S A G E -------------------- //
 
 app.get("/message/new", (req, res) => {
   const user = req.session.user;
@@ -244,6 +244,7 @@ app.get("/message/new", (req, res) => {
     heure: heure,
     expediteur: expediteur,
     destinataire: destinataire,
+    lu:lu,
   });
 });
 
@@ -254,6 +255,7 @@ app.post("/message", (req, res) => {
     destinataire: req.body.destinataire,
     texte: req.body.texte,
     date: heure,
+    lu: false,
   });
   messageData
     .save()
@@ -269,32 +271,34 @@ app.post("/message", (req, res) => {
     });
 });
 
-// Courriers reçus
-app.get("/messagereceived", (req, res) => {
-  const heure = moment().format("DD-MM-YYYY, h:mm:ss");
-  const user = req.session.user;
-  const destinataire =
-    req.session.user.role === "admin" ? "admin@admin" : user.email;
-  Message.find({ destinataire })
-    .then((messages) => {
-      res.json({
-        heure: heure,
-        user: user,
-        messages: messages,
+// Messages reçus
+  app.get("/messagereceived", (req, res) => {
+    const heure = moment().format("DD-MM-YYYY, h:mm:ss");
+    if (!req.session.user) {
+      return res.status(401).json({ error: "Utilisateur non connecté ou session expirée." });
+    }
+    const user = req.session.user;
+    const destinataire = user.role === "admin" ? "admin@admin" : user.email;
+    Message.find({ destinataire })
+      .then((messages) => {
+        res.json({
+          heure: heure,
+          user: user,
+          messages: messages,
+        });
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(500).json({ error: "Erreur serveur" });
       });
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).json({ error: "Erreur serveur" });
-    });
-});
+  });
+  
 
-// Courriers Envoyés
+// Messages Envoyés
 app.get("/messagesent", (req, res) => {
   if (!req.session.user) {
     return res.status(401).json({ error: "Non autorisé" });
   }
-
   const heure = moment().format("DD-MM-YYYY, h:mm:ss");
   const user = req.session.user;
   const expediteur =
@@ -313,7 +317,7 @@ app.get("/messagesent", (req, res) => {
     });
 });
 
-// Modifier courrier
+// Modifier message
 app.get("/editmessage/:id", (req, res) => {
   const user = req.session.user;
   const heure = moment().format("DD-MM-YYYY, h:mm:ss");
@@ -326,27 +330,40 @@ app.get("/editmessage/:id", (req, res) => {
     });
 });
 
-app.put("/editmessage/:id", (req, res) => {
-  const heure = moment().format("DD-MM-YYYY, h:mm:ss");
+app.put('/editmessage/:id', (req, res) => {
+  const heure = moment().format('DD-MM-YYYY, h:mm:ss');
   const messageData = {
     expediteur: req.body.expediteur,
     destinataire: req.body.destinataire,
     texte: req.body.texte,
     date: heure,
+    lu: false,
   };
   Message.findByIdAndUpdate(req.params.id, messageData)
     .then(() => {
-      res.json({ message: "Message updated successfully!" });
+      res.json({ message: 'Message updated successfully!' });
     })
-    .catch((err) => {
+    .catch(err => {
       console.log(err);
-      res
-        .status(500)
-        .json({ error: "An error occurred while updating the message" });
+      res.status(500).json({ error: 'An error occurred while updating the message' });
     });
 });
 
-// Effacer courrier
+// Mettre à jour le statut de lecture d'un message
+app.put("/markasread/:id", (req, res) => {
+  const messageId = req.params.id;
+  Message.findByIdAndUpdate(messageId, { lu: true }, { new: true })
+    .then(updatedMessage => {
+      res.json({ message: "Message lu", updatedMessage });
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(500).json({ error: "Une erreur s'est produite lors de la mise à jour du message." });
+    });
+});
+
+
+// Effacer message
 app.delete("/deletemessage/:id", (req, res) => {
   const id = req.params.id;
   Message.findByIdAndRemove(id)
