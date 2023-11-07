@@ -54,6 +54,7 @@ app.use(function (req, res, next) {
 });
 
 // Configurer express-session
+const isProd = process.env.NODE_ENV === 'production';
 app.use(session({
   key: "userId",
   secret: "1234",
@@ -62,8 +63,8 @@ app.use(session({
   cookie: {
     httpOnly: true,
     maxAge: 30 * 24 * 60 * 60 * 1000,
-    sameSite: 'none', 
-    secure: false,    
+    sameSite: isProd ? 'None' : 'Lax', 
+    secure: isProd, 
   },
 }));
 
@@ -101,8 +102,51 @@ const upload = multer({ storage: storage });
 
 app.use(cookieParser());
 
+// LOGIN ACCESS
+const requireAdmin = (req, res, next) => {
+  const user = req.session.user;
+  if (!user) {
+    return res.status(401).json({ success: false, error: "Accès non autorisé" });
+  }
+  if (user.role !== 'admin') {
+    return res.status(403).json({ success: false, error: "Requiert un rôle administrateur" });
+  }
+  next();
+};
 
 //  - - - - - - - - - - R O U T E  U S E R - - - - - - - - - - - //
+
+// ajouté //
+// récupérer tous les utilisateurs
+app.get("/admin/users", requireAdmin, async (req, res) => {
+  try {
+    const users = await User.find();
+    res.json({ success: true, users });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: "Erreur interne du serveur" });
+  }
+});
+
+// ajouté //
+// Route pour modifier le rôle d'un utilisateur
+app.post("/admin/user/:id/role", requireAdmin, async (req, res) => {
+  const { role } = req.body;
+  if (!role) {
+    return res.status(400).json({ success: false, error: "Le rôle est requis" });
+  }
+  
+  try {
+    const user = await User.findByIdAndUpdate(req.params.id, { role }, { new: true });
+    if (!user) {
+      return res.status(404).json({ success: false, error: "Utilisateur non trouvé" });
+    }
+    res.json({ success: true, message: "Rôle mis à jour", user });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: "Erreur interne du serveur" });
+  }
+});
 
 // Page d'accueil
 app.get("/", (req, res) => {
@@ -121,47 +165,40 @@ app.post("/register/new", function (req, res) {
   const email = req.body.email;
   const password = bcrypt.hashSync(req.body.password, 10);
   const role = req.body.role;
-  const formData = new User({
-    prenom,
-    email,
-    password, 
-    role,
+  const formData = new User({prenom,email,password,role,
   });
-  formData
-  .save()
-  .then(() => {
-    res.json({ success: true, message: "Inscription réussie!" });
-  })
-  .catch((err) => {
-    console.error(err);
-    res.status(500).json({ success: false, error: "Erreur lors de l'inscription" });
-  });
+  formData .save() .then(() => {res.json({ 
+        success: true, message: "Inscription réussie!" });
+    })
+    .catch((err) => {console.error(err); res.status(500).json({ 
+          success: false, error: "Erreur lors de l'inscription" 
+        });
+    });
 });
 
 // Connexion
 app.get("/login", async (req, res) => {
   if (req.session && req.session.user) {
-      return res.json({ success: true, data: req.session.user });
-  } else {
-      return res.status(200).send("Login GET route");
-  }
+    return res.json({ success: true, data: req.session.user });
+  } else { return res.status(200).send("Aucune persone connecté");}
 });
-
 app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ success: false, error: "Email invalide" });
+    if (!user) { return res.status(400).json({ 
+        success: false, error: "Email invalide" });
     }
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      return res.status(400).json({ success: false, error: "Mot de passe invalide" });
+    const isPasswordValid = await bcrypt.compare(
+      password, user.password);
+    if (!isPasswordValid) { return res.status(400)
+        .json({ success: false, error: "Mot de passe invalide" });
     }
     req.session.user = user;
     return res.json({ success: true, data: user });
   } catch (err) {
-    return res.status(500).json({ success: false, error: "Erreur serveur" });
+    return res.status(500).json({ 
+      success: false, error: "Erreur serveur" });
   }
 });
 
@@ -222,15 +259,21 @@ app.post("/edit-user/:id", async (req, res) => {
 });
 
 // DELETE
-app.delete("/delete-user/:id", (req, res) => {
-  User.findByIdAndRemove(req.params.id)
-    .then(() => {
-      res.redirect("/logout");
-    })
-    .catch((err) => {
-      console.log(err);
-    });
+// app.delete("/delete-user/:id", (req, res) => {
+//   User.findByIdAndRemove(req.params.id)
+//     .then(() => { res.redirect("/logout"); })
+//     .catch((err) => { console.log(err); });
+// });
+app.delete("/delete-user/:id", requireAdmin, async (req, res) => {
+  try {
+    await User.findByIdAndRemove(req.params.id);
+    res.json({ success: true, message: "Utilisateur supprimé" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: "Erreur interne du serveur" });
+  }
 });
+
 
 // -------------------- R O U T E  M E S S A G E -------------------- //
 
@@ -274,11 +317,13 @@ app.post("/message", (req, res) => {
 // Messages reçus
   app.get("/messagereceived", (req, res) => {
     const heure = moment().format("DD-MM-YYYY, h:mm:ss");
-    if (!req.session.user) {
-      return res.status(401).json({ error: "Utilisateur non connecté ou session expirée." });
-    }
-    const user = req.session.user;
-    const destinataire = user.role === "admin" ? "admin@admin" : user.email;
+  if (!req.session.user) {
+    return res.status(401).json({ 
+      error: "Utilisateur non connecté ou session expirée." 
+    });
+  }
+  const user = req.session.user;
+  const destinataire = user.role === "admin" ? "admin@admin" : user.email;
     Message.find({ destinataire })
       .then((messages) => {
         res.json({
@@ -361,7 +406,6 @@ app.put("/markasread/:id", (req, res) => {
       res.status(500).json({ error: "Une erreur s'est produite lors de la mise à jour du message." });
     });
 });
-
 
 // Effacer message
 app.delete("/deletemessage/:id", (req, res) => {
