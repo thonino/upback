@@ -232,87 +232,102 @@ app.delete("/delete-user/:id", (req, res) => {
     });
 });
 
-// -------------------- R O U T E   C O U R R I E R -------------------- //
+// -------------------- R O U T E  M E S S A G E -------------------- //
 
-app.get('/message/new', (req, res) => {
+app.get("/message/new", (req, res) => {
   const user = req.session.user;
-  const heure = moment().format('DD-MM-YYYY, h:mm:ss');
+  const heure = moment().format("DD-MM-YYYY, h:mm:ss");
   const expediteur = req.query.expediteur;
   const destinataire = req.query.destinataire;
   res.json({
     user: user,
     heure: heure,
     expediteur: expediteur,
-    destinataire: destinataire
+    destinataire: destinataire,
+    lu:lu,
   });
 });
 
-app.post('/message', (req, res) => {
-  const heure = moment().format('DD-MM-YYYY, h:mm:ss');
+app.post("/message", (req, res) => {
+  const heure = moment().format("DD-MM-YYYY, h:mm:ss");
   const messageData = new Message({
     expediteur: req.body.expediteur,
     destinataire: req.body.destinataire,
     texte: req.body.texte,
-    date: heure
+    date: heure,
+    lu: false,
   });
-  messageData.save()
-  .then(() => res.json({ success: true, message: 'Message envoyé avec succès' }))
-  .catch(err => {
-    console.log(err);
-    res.status(500).json({ success: false, message: 'Erreur lors de l\'envoi du message.' });
-  });
+  messageData
+    .save()
+    .then(() =>
+      res.json({ success: true, message: "Message envoyé avec succès" })
+    )
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json({
+        success: false,
+        message: "Erreur lors de l'envoi du message.",
+      });
+    });
 });
 
-// Courriers reçus
-app.get('/messagereceived', (req, res) => {
-  const heure = moment().format('DD-MM-YYYY, h:mm:ss');
+// Messages reçus
+  app.get("/messagereceived", (req, res) => {
+    const heure = moment().format("DD-MM-YYYY, h:mm:ss");
+    if (!req.session.user) {
+      return res.status(401).json({ error: "Utilisateur non connecté ou session expirée." });
+    }
+    const user = req.session.user;
+    const destinataire = user.role === "admin" ? "admin@admin" : user.email;
+    Message.find({ destinataire })
+      .then((messages) => {
+        res.json({
+          heure: heure,
+          user: user,
+          messages: messages,
+        });
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(500).json({ error: "Erreur serveur" });
+      });
+  });
+  
+
+// Messages Envoyés
+app.get("/messagesent", (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({ error: "Non autorisé" });
+  }
+  const heure = moment().format("DD-MM-YYYY, h:mm:ss");
   const user = req.session.user;
-  const destinataire = req.session.user.role === "admin" ? "admin@admin" : user.email;
-  Message.find({ destinataire })
+  const expediteur =
+    req.session.user.role === "admin" ? "admin@admin" : user.email;
+  Message.find({ expediteur })
     .then((messages) => {
       res.json({
         heure: heure,
         user: user,
-        messages: messages
+        messages: messages,
       });
     })
     .catch((err) => {
       console.log(err);
-      res.status(500).json({ error: 'Erreur serveur' }); 
+      res.status(500).json({ error: "Erreur serveur" });
     });
 });
 
-// Courriers Envoyés
-app.get('/messagesent', (req, res) => {
-  if (!req.session.user) {
-    return res.status(401).json({ error: 'Non autorisé' });
-  }
-  const heure = moment().format('DD-MM-YYYY, h:mm:ss');
+// Modifier message
+app.get("/editmessage/:id", (req, res) => {
   const user = req.session.user;
-  const expediteur = req.session.user.role === "admin" ? "admin@admin" : user.email;
-  Message.find({ expediteur })
-  .then((messages)=>{
-    res.json({
-      heure: heure, 
-      user: user, 
-      messages: messages 
-    });
-  })
-  .catch((err) => {
-    console.log(err);
-    res.status(500).json({ error: 'Erreur serveur' }); 
-  });
-});
-
-// Modifier courrier
-app.get('/editmessage/:id', (req, res) => {
-  const user = req.session.user;
-  const heure = moment().format('DD-MM-YYYY, h:mm:ss');
+  const heure = moment().format("DD-MM-YYYY, h:mm:ss");
   Message.findById(req.params.id)
     .then((message) => {
       res.json({ message: message, user: user, heure: heure });
     })
-    .catch(err => { console.log(err); });
+    .catch((err) => {
+      console.log(err);
+    });
 });
 
 app.put('/editmessage/:id', (req, res) => {
@@ -322,6 +337,7 @@ app.put('/editmessage/:id', (req, res) => {
     destinataire: req.body.destinataire,
     texte: req.body.texte,
     date: heure,
+    lu: false,
   };
   Message.findByIdAndUpdate(req.params.id, messageData)
     .then(() => {
@@ -333,17 +349,29 @@ app.put('/editmessage/:id', (req, res) => {
     });
 });
 
-  // Effacer courrier 
-  app.delete('/deletemessage/:id', (req, res) => {
-    const id = req.params.id;
-    Message.findByIdAndRemove(id)
+// Mettre à jour le statut de lecture d'un message
+app.put("/markasread/:id", (req, res) => {
+  const messageId = req.params.id;
+  Message.findByIdAndUpdate(messageId, { lu: true }, { new: true })
+    .then(updatedMessage => {
+      res.json({ message: "Message lu", updatedMessage });
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(500).json({ error: "Une erreur s'est produite lors de la mise à jour du message." });
+    });
+});
+
+
+// Effacer message
+app.delete("/deletemessage/:id", (req, res) => {
+  const id = req.params.id;
+  Message.findByIdAndRemove(id)
     .then(() => res.sendStatus(204))
     .catch((err) => res.status(500).json({ error: err.message }));
-  });
+});
 
-  
-
-// -------------------- R O U T E   P R O D U I T S -------------------- //
+// -------------------- R O U T E  P R O D U I T S -------------------- //
 
 // Afficher produits
 app.get("/products", (req, res) => {
