@@ -57,20 +57,19 @@ app.use(function (req, res, next) {
 });
 
 // Configurer express-session
-app.use(
-  session({
-    key: "userId",
-    secret: "1234",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-      sameSite: "none",
-      secure: false,
-    },
-  })
-);
+const isProd = process.env.NODE_ENV === 'production';
+app.use(session({
+  key: "userId",
+  secret: "1234",
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+    sameSite: isProd ? 'None' : 'Lax', 
+    secure: isProd, 
+  },
+}));
 
 // MongoDB, Mongoose, and dotenv
 require("dotenv").config();
@@ -111,7 +110,52 @@ const upload = multer({
 });
 app.use(cookieParser());
 
+// ajouté //
+// LOGIN ACCESS
+const requireAdmin = (req, res, next) => {
+  const user = req.session.user;
+  if (!user) {
+    return res.status(401).json({ success: false, error: "Accès non autorisé" });
+  }
+  if (user.role !== 'admin') {
+    return res.status(403).json({ success: false, error: "Requiert un rôle administrateur" });
+  }
+  next();
+};
+
 //  - - - - - - - - - - U S E R - - - - - - - - - - - //
+
+// ajouté //
+// récupérer tous les utilisateurs
+app.get("/admin/users", requireAdmin, async (req, res) => {
+  try {
+    const users = await User.find();
+    res.json({ success: true, users });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: "Erreur interne du serveur" });
+  }
+});
+
+// ajouté //
+// Route pour modifier le rôle d'un utilisateur
+app.post("/admin/user/:id/role", requireAdmin, async (req, res) => {
+  const { role } = req.body;
+  if (!role) {
+    return res.status(400).json({ success: false, error: "Le rôle est requis" });
+  }
+  
+  try {
+    const user = await User.findByIdAndUpdate(req.params.id, { role }, { new: true });
+    if (!user) {
+      return res.status(404).json({ success: false, error: "Utilisateur non trouvé" });
+    }
+    res.json({ success: true, message: "Rôle mis à jour", user });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: "Erreur interne du serveur" });
+  }
+});
 
 // Page d'accueil
 app.get("/", (req, res) => {
@@ -223,13 +267,20 @@ app.post("/edit-user/:id", async (req, res) => {
     });
 });
 
-
-
 // DELETE
-app.delete("/delete-user/:id", (req, res) => {
-  User.findByIdAndRemove(req.params.id)
-    .then(() => { res.redirect("/logout"); })
-    .catch((err) => { console.log(err); });
+// app.delete("/delete-user/:id", (req, res) => {
+//   User.findByIdAndRemove(req.params.id)
+//     .then(() => { res.redirect("/logout"); })
+//     .catch((err) => { console.log(err); });
+// });
+app.delete("/delete-user/:id", requireAdmin, async (req, res) => {
+  try {
+    await User.findByIdAndRemove(req.params.id);
+    res.json({ success: true, message: "Utilisateur supprimé" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: "Erreur interne du serveur" });
+  }
 });
 
 // -------------------- M E S S A G E -------------------- //
@@ -274,11 +325,13 @@ app.post("/message", (req, res) => {
 // Messages reçus
   app.get("/messagereceived", (req, res) => {
     const heure = moment().format("DD-MM-YYYY, h:mm:ss");
-    if (!req.session.user) {
-      return res.status(401).json({ error: "Utilisateur non connecté ou session expirée." });
-    }
-    const user = req.session.user;
-    const destinataire = user.role === "admin" ? "admin@admin" : user.email;
+  if (!req.session.user) {
+    return res.status(401).json({ 
+      error: "Utilisateur non connecté ou session expirée." 
+    });
+  }
+  const user = req.session.user;
+  const destinataire = user.role === "admin" ? "admin@admin" : user.email;
     Message.find({ destinataire })
       .then((messages) => {
         res.json({
