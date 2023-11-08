@@ -415,10 +415,11 @@ app.put("/markasread/:id", (req, res) => {
   const messageId = req.params.id;
   Message.findByIdAndUpdate(messageId, { lu: true }, { new: true })
     .then(updatedMessage => {
-      res.json({ message: "Message lu", updatedMessage },console.log("serveur message test: ", message));
+      res.json({ message: "Message lu", updatedMessage });
+      console.log("log server markread messageid",messageId);
     })
     .catch(err => {
-      console.error(err);
+      console.error("log server markread messageid",messageId,err);
       res.status(500).json({ error: "Une erreur s'est produite lors de la mise à jour du message." });
     });
 });
