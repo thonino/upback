@@ -415,7 +415,7 @@ app.put("/markasread/:id", (req, res) => {
   const messageId = req.params.id;
   Message.findByIdAndUpdate(messageId, { lu: true }, { new: true })
     .then(updatedMessage => {
-      res.json({ message: "Message lu", updatedMessage });
+      res.json({ message: "Message lu", updatedMessage },console.log("serveur message test: ", message));
     })
     .catch(err => {
       console.error(err);
