@@ -426,15 +426,20 @@ app.put('/editmessage/:id', (req, res) => {
 
 app.put("/markasread/:id", (req, res) => {
   const messageId = req.params.id;
-  Message.findByIdAndUpdate(messageId, { lu: true })
-    .then(() => {
-      res.json({ message: "Le message a été marqué comme lu." });
+  Message.findByIdAndUpdate(messageId, { lu: true }, { new: true })
+    .then(updatedMessage => {
+      if (updatedMessage) {
+        res.json({ message: "Le message a été marqué comme lu", updatedMessage });
+      } else {
+        res.status(404).json({ error: "Message non trouvé" });
+      }
     })
     .catch(err => {
       console.error(err);
-      res.status(500).json({ error: "Une erreur s'est produite lors de la mise à jour du message." });
+      res.status(500).json({ error: "Une erreur s'est produite lors de la mise à jour du message" });
     });
 });
+
 
 
 
