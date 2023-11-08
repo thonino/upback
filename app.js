@@ -405,9 +405,13 @@ app.put('/editmessage/:id', (req, res) => {
 // Mettre à jour le statut de lecture d'un message
 app.put("/markasread/:id", (req, res) => {
   const messageId = req.params.id;
-  Message.findByIdAndUpdate(messageId, { lu: true }, { new: true })
-    .then(updatedMessage => {
-      res.json({ message: "Message lu", updatedMessage });
+  Message.updateOne({ _id: messageId }, { $set: { lu: true } })
+    .then(result => {
+      if(result.nModified > 0) {
+        res.json({ message: "Message marqué comme lu" });
+      } else {
+        res.status(404).json({ message: "Message non trouvé ou déjà marqué comme lu" });
+      }
     })
     .catch(err => {
       console.error(err);
