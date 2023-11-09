@@ -1,14 +1,14 @@
-//  - - - - - - - - -D E P E N D A N C E S  M A I N- - - - - - - - - - //
-const express = require('express');
-const helmet = require('helmet');
-const path = require('path');
+//  - - - - - - - - -D E P E N D A N C E S- - - - - - - - - - //
+//                          L O C A L                            //
+const express = require("express");
+const helmet = require("helmet");
+const path = require("path");
 const app = express();
-const PORT = process.env.PORT || 5000;
 const session = require("express-session");
 const cors = require("cors");
+const PORT = process.env.PORT || 5000;
 const bcrypt = require("bcrypt");
 const mongoose = require("mongoose");
-// const MongoStore = require('connect-mongo');
 const methodOverride = require("method-override");
 const moment = require("moment");
 const multer = require("multer");
@@ -16,25 +16,28 @@ const cookieParser = require("cookie-parser");
 const toobusy = require("toobusy-js");
 
 // Set the view engine
-app.set('views', path.join(__dirname, 'views'));
+app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
 // MIDDLEWARES
-app.use(helmet.contentSecurityPolicy({  
-  directives: {
-    defaultSrc: ["'self'"],
-    scriptSrc: ["'self'", "'unsafe-inline'"],
-    imgSrc: ["'self'", "https://uppercase-app-back-efd9a0ca1970.herokuapp.com"]
-  }
-}));
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "https://uppercase-app-back-efd9a0ca1970.herokuapp.com"],
+    },
+  })
+);
 
-app.use(cors({ 
-  origin: 'https://uppercase-app-front-6fca89d1dde9.herokuapp.com', 
-  methods: 'GET, POST, PUT, DELETE',
-  allowedHeaders: 'Content-Type, Authorization',
-  credentials: true
-}));
-
+app.use(
+  cors({
+    origin: "https://uppercase-app-front-6fca89d1dde9.herokuapp.com",
+    methods: "GET, POST, PUT, DELETE",
+    allowedHeaders: "Content-Type, Authorization",
+    credentials: true,
+  })
+);
 
 // Serve static files
 app.use(express.static("public"));
@@ -55,24 +58,6 @@ app.use(function (req, res, next) {
 });
 
 // Configurer express-session
-// const isProd = process.env.NODE_ENV === 'production';
-// app.use(session({
-//   key: "userId",
-//   secret: "1234",
-//   resave: false,
-//   saveUninitialized: false,
-//   cookie: {
-//     httpOnly: true,
-//     maxAge: 30 * 24 * 60 * 60 * 1000,
-//     sameSite: isProd ? 'None' : 'Lax', 
-//     secure: isProd, 
-//   },
-//   store: MongoStore.create({
-//     mongoUrl: url
-//   }),
-// }));
-
-// Configurer express-session
 const isProd = process.env.NODE_ENV === 'production';
 app.use(session({
   key: "userId",
@@ -83,12 +68,9 @@ app.use(session({
     httpOnly: true,
     maxAge: 30 * 24 * 60 * 60 * 1000,
     sameSite: isProd ? 'None' : 'Lax', 
-    secure: false, 
+    secure: isProd, 
   },
 }));
-
-
-
 
 // MongoDB, Mongoose, and dotenv
 require("dotenv").config();
@@ -111,7 +93,7 @@ const Product = require("./models/Product");
 // Method-override
 app.use(methodOverride("_method"));
 
-// Moment & Multer
+// Multer
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "uploads/");
@@ -120,10 +102,16 @@ const storage = multer.diskStorage({
     cb(null, file.originalname);
   },
 });
-const upload = multer({ storage: storage });
 
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 1024 * 1024 * 5, // Limite la taille du fichier à 5MB
+  },
+});
 app.use(cookieParser());
 
+// ajouté //
 // LOGIN ACCESS
 const requireAdmin = (req, res, next) => {
   const user = req.session.user;
@@ -135,6 +123,40 @@ const requireAdmin = (req, res, next) => {
   }
   next();
 };
+
+// Configurer express-session
+// const isProd = process.env.NODE_ENV === 'production';
+// app.use(session({
+//   key: "userId",
+//   secret: "1234",
+//   resave: false,
+//   saveUninitialized: false,
+//   cookie: {
+//     httpOnly: true,
+//     maxAge: 30 * 24 * 60 * 60 * 1000,
+//     sameSite: isProd ? 'None' : 'Lax', 
+//     secure: isProd, 
+//   },
+//   store: MongoStore.create({
+//     mongoUrl: url
+//   }),
+// }));
+
+// Configurer express-session
+// const isProd = process.env.NODE_ENV === 'production';
+// app.use(session({
+//   key: "userId",
+//   secret: "1234",
+//   resave: false,
+//   saveUninitialized: false,
+//   cookie: {
+//     httpOnly: true,
+//     maxAge: 30 * 24 * 60 * 60 * 1000,
+//     sameSite: isProd ? 'None' : 'Lax', 
+//     secure: false, 
+//   },
+// }));
+
 
 //  - - - - - - - - - - R O U T E  U S E R - - - - - - - - - - - //
 
