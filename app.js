@@ -54,25 +54,6 @@ app.use(function (req, res, next) {
   }
 });
 
-// MongoDB, Mongoose, and dotenv
-require("dotenv").config();
-const url = process.env.DATABASE_URL;
-mongoose
-  .connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => {
-    console.log("MongoDB connected");
-  })
-  .catch((err) => {
-    console.log(err);
-  });
-
-const Message = require("./models/Message");
-const User = require("./models/User");
-const Invoice = require("./models/Invoice");
-const Basket = require("./models/Basket");
-const Product = require("./models/Product");
-
-
 // Configurer express-session
 const isProd = process.env.NODE_ENV === 'production';
 app.use(session({
@@ -105,6 +86,27 @@ app.use(session({
 //     secure: false, 
 //   },
 // }));
+
+// MongoDB, Mongoose, and dotenv
+require("dotenv").config();
+const url = process.env.DATABASE_URL;
+mongoose
+  .connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => {
+    console.log("MongoDB connected");
+  })
+  .catch((err) => {
+    console.log(err);
+  });
+
+const Message = require("./models/Message");
+const User = require("./models/User");
+const Invoice = require("./models/Invoice");
+const Basket = require("./models/Basket");
+const Product = require("./models/Product");
+
+
+
 
 
 
