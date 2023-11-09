@@ -1,5 +1,5 @@
 //  - - - - - - - - -D E P E N D A N C E S- - - - - - - - - - //
-//                          L O C A L                            //
+
 const express = require("express");
 const helmet = require("helmet");
 const path = require("path");
@@ -81,34 +81,32 @@ app.use(function (req, res, next) {
 // }));
 
 // Configurer express-session
-// const isProd = process.env.NODE_ENV === 'production';
-// app.use(session({
-//   key: "userId",
-//   secret: "1234",
-//   resave: false,
-//   saveUninitialized: false,
-//   cookie: {
-//     httpOnly: true,
-//     maxAge: 30 * 24 * 60 * 60 * 1000,
-//     sameSite: isProd ? 'None' : 'Lax', 
-//     secure: false, 
-//   },
-// }));
-
+const isProd = process.env.NODE_ENV === 'production';
 app.use(session({
   key: "userId",
-  secret: "votre_secret_ici", // Assurez-vous d'utiliser un secret fort en production
+  secret: "1234",
   resave: false,
   saveUninitialized: false,
   cookie: {
-    httpOnly: true, // Bon pour la sécurité, empêche l'accès au cookie via JavaScript côté client
-    maxAge: 30 * 24 * 60 * 60 * 1000, // Durée de vie du cookie
-    sameSite: 'None', // Nécessaire pour le cross-domain/cross-site cookies
-    secure: true, // Nécessaire car vous êtes en HTTPS
+    httpOnly: true,
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+    sameSite: isProd ? 'None' : 'Lax', 
+    secure: false, 
   },
 }));
 
-
+// app.use(session({
+//   key: "userId",
+//   secret: "votre_secret_ici", 
+//   resave: false,
+//   saveUninitialized: false,
+//   cookie: {
+//     httpOnly: true, 
+//     maxAge: 30 * 24 * 60 * 60 * 1000, 
+//     sameSite: 'None', 
+//     secure: true, 
+//   },
+// }));
 
 // MongoDB, Mongoose, and dotenv
 require("dotenv").config();
