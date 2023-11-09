@@ -8,7 +8,7 @@ const session = require("express-session");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
 const mongoose = require("mongoose");
-const MongoStore = require('connect-mongo');
+// const MongoStore = require('connect-mongo');
 const methodOverride = require("method-override");
 const moment = require("moment");
 const multer = require("multer");
@@ -55,24 +55,6 @@ app.use(function (req, res, next) {
 });
 
 // Configurer express-session
-const isProd = process.env.NODE_ENV === 'production';
-app.use(session({
-  key: "userId",
-  secret: "1234",
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    httpOnly: true,
-    maxAge: 30 * 24 * 60 * 60 * 1000,
-    sameSite: isProd ? 'None' : 'Lax', 
-    secure: isProd, 
-  },
-  store: MongoStore.create({
-    mongoUrl: url
-  }),
-}));
-
-// Configurer express-session
 // const isProd = process.env.NODE_ENV === 'production';
 // app.use(session({
 //   key: "userId",
@@ -83,9 +65,27 @@ app.use(session({
 //     httpOnly: true,
 //     maxAge: 30 * 24 * 60 * 60 * 1000,
 //     sameSite: isProd ? 'None' : 'Lax', 
-//     secure: false, 
+//     secure: isProd, 
 //   },
+//   store: MongoStore.create({
+//     mongoUrl: url
+//   }),
 // }));
+
+// Configurer express-session
+const isProd = process.env.NODE_ENV === 'production';
+app.use(session({
+  key: "userId",
+  secret: "1234",
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+    sameSite: isProd ? 'None' : 'Lax', 
+    secure: false, 
+  },
+}));
 
 // MongoDB, Mongoose, and dotenv
 require("dotenv").config();
