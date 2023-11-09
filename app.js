@@ -72,6 +72,8 @@ app.use(function (req, res, next) {
 //   }),
 // }));
 
+
+
 // Configurer express-session
 // const isProd = process.env.NODE_ENV === 'production';
 // app.use(session({
@@ -87,9 +89,9 @@ app.use(function (req, res, next) {
 //   },
 // }));
 
-// Configurer express-session
+// Configurer express-session pour la production
 const isProd = process.env.NODE_ENV === 'production';
-app.use(session({
+const sessionConfig = {
   key: "userId",
   secret: "1234",
   resave: false,
@@ -97,11 +99,16 @@ app.use(session({
   cookie: {
     httpOnly: true,
     maxAge: 30 * 24 * 60 * 60 * 1000,
-    sameSite: isProd ? 'None' : 'Lax', 
-    secure: false, 
-  },
+    sameSite: isProd ? 'None' : 'Lax',
+    secure: isProd, // Doit être 'true' si vous êtes en HTTPS
+  }
+};
 
-}));
+if (isProd) {
+  sessionConfig.cookie.secure = true; 
+}
+
+app.use(session(sessionConfig));
 
 
 
@@ -122,11 +129,6 @@ const User = require("./models/User");
 const Invoice = require("./models/Invoice");
 const Basket = require("./models/Basket");
 const Product = require("./models/Product");
-
-
-
-
-
 
 // Method-override
 app.use(methodOverride("_method"));
