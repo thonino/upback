@@ -285,20 +285,6 @@ app.delete("/delete-user/:id", requireAdmin, async (req, res) => {
 
 // -------------------- M E S S A G E -------------------- //
 
-app.get("/message/new", (req, res) => {
-  const user = req.session.user;
-  const heure = moment().format("DD-MM-YYYY, h:mm:ss");
-  const expediteur = req.query.expediteur;
-  const destinataire = req.query.destinataire;
-  res.json({
-    user: user,
-    heure: heure,
-    expediteur: expediteur,
-    destinataire: destinataire,
-    lu:lu,
-  });
-});
-
 app.post("/message", (req, res) => {
   const heure = moment().format("DD-MM-YYYY, h:mm:ss");
   const messageData = new Message({
