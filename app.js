@@ -8,6 +8,7 @@ const session = require("express-session");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
 const mongoose = require("mongoose");
+const MongoStore = require('connect-mongo');
 const methodOverride = require("method-override");
 const moment = require("moment");
 const multer = require("multer");
@@ -53,15 +54,35 @@ app.use(function (req, res, next) {
   }
 });
 
-// Configurer express-session
+// MongoDB, Mongoose, and dotenv
+require("dotenv").config();
+const url = process.env.DATABASE_URL;
+mongoose
+  .connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => {
+    console.log("MongoDB connected");
+  })
+  .catch((err) => {
+    console.log(err);
+  });
+
+const Message = require("./models/Message");
+const User = require("./models/User");
+const Invoice = require("./models/Invoice");
+const Basket = require("./models/Basket");
+const Product = require("./models/Product");
+
+
 app.use(session({
   secret: 'votreSecretDeSession', 
   cookie: {
     maxAge: 1000 * 60 * 60 * 24 
   },
-  store: store,
-  resave: true,
-  saveUninitialized: true
+  store: MongoStore.create({
+    mongoUrl: url
+  }),
+  resave: false,
+  saveUninitialized: false 
 }));
 
 // Configurer express-session
@@ -95,23 +116,6 @@ app.use(session({
 // }));
 
 
-// MongoDB, Mongoose, and dotenv
-require("dotenv").config();
-const url = process.env.DATABASE_URL;
-mongoose
-  .connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => {
-    console.log("MongoDB connected");
-  })
-  .catch((err) => {
-    console.log(err);
-  });
-
-const Message = require("./models/Message");
-const User = require("./models/User");
-const Invoice = require("./models/Invoice");
-const Basket = require("./models/Basket");
-const Product = require("./models/Product");
 
 // Method-override
 app.use(methodOverride("_method"));
