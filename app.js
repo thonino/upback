@@ -1,9 +1,9 @@
-//  - - - - - - - - -D E P E N D A N C E S- - - - - - - - - - //
-//                          L O C A L                            //
-const express = require("express");
-const helmet = require("helmet");
-const path = require("path");
+//  - - - - - - - - -D E P E N D A N C E S  M A I N- - - - - - - - - - //
+const express = require('express');
+const helmet = require('helmet');
+const path = require('path');
 const app = express();
+const PORT = process.env.PORT || 5000;
 const session = require("express-session");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
@@ -15,28 +15,25 @@ const cookieParser = require("cookie-parser");
 const toobusy = require("toobusy-js");
 
 // Set the view engine
-app.set("views", path.join(__dirname, "views"));
+app.set('views', path.join(__dirname, 'views'));
 app.set("view engine", "ejs");
 
 // MIDDLEWARES
-app.use(
-  helmet.contentSecurityPolicy({
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "http://localhost:5000"],
-    },
-  })
-);
+app.use(helmet.contentSecurityPolicy({  
+  directives: {
+    defaultSrc: ["'self'"],
+    scriptSrc: ["'self'", "'unsafe-inline'"],
+    imgSrc: ["'self'", "https://uppercase-app-back-efd9a0ca1970.herokuapp.com"]
+  }
+}));
 
-app.use(
-  cors({
-    origin: "http://localhost:3000",
-    methods: "GET, POST, PUT, DELETE",
-    allowedHeaders: "Content-Type, Authorization",
-    credentials: true,
-  })
-);
+app.use(cors({ 
+  origin: 'https://uppercase-app-front-6fca89d1dde9.herokuapp.com', 
+  methods: 'GET, POST, PUT, DELETE',
+  allowedHeaders: 'Content-Type, Authorization',
+  credentials: true
+}));
+
 
 // Serve static files
 app.use(express.static("public"));
@@ -57,6 +54,21 @@ app.use(function (req, res, next) {
 });
 
 // Configurer express-session
+// const isProd = process.env.NODE_ENV === 'production';
+// app.use(session({
+//   key: "userId",
+//   secret: "1234",
+//   resave: false,
+//   saveUninitialized: false,
+//   cookie: {
+//     httpOnly: true,
+//     maxAge: 30 * 24 * 60 * 60 * 1000,
+//     sameSite: isProd ? 'None' : 'Lax', 
+//     secure: isProd, 
+//   },
+// }));
+
+// Configurer express-session
 const isProd = process.env.NODE_ENV === 'production';
 app.use(session({
   key: "userId",
@@ -67,9 +79,10 @@ app.use(session({
     httpOnly: true,
     maxAge: 30 * 24 * 60 * 60 * 1000,
     sameSite: isProd ? 'None' : 'Lax', 
-    secure: isProd, 
+    secure: false, 
   },
 }));
+
 
 // MongoDB, Mongoose, and dotenv
 require("dotenv").config();
@@ -92,7 +105,7 @@ const Product = require("./models/Product");
 // Method-override
 app.use(methodOverride("_method"));
 
-// Multer
+// Moment & Multer
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "uploads/");
@@ -101,16 +114,10 @@ const storage = multer.diskStorage({
     cb(null, file.originalname);
   },
 });
+const upload = multer({ storage: storage });
 
-const upload = multer({
-  storage: storage,
-  limits: {
-    fileSize: 1024 * 1024 * 5, // Limite la taille du fichier à 5MB
-  },
-});
 app.use(cookieParser());
 
-// ajouté //
 // LOGIN ACCESS
 const requireAdmin = (req, res, next) => {
   const user = req.session.user;
@@ -123,7 +130,7 @@ const requireAdmin = (req, res, next) => {
   next();
 };
 
-//  - - - - - - - - - - U S E R - - - - - - - - - - - //
+//  - - - - - - - - - - R O U T E  U S E R - - - - - - - - - - - //
 
 // ajouté //
 // récupérer tous les utilisateurs
@@ -283,7 +290,8 @@ app.delete("/delete-user/:id", requireAdmin, async (req, res) => {
   }
 });
 
-// -------------------- M E S S A G E -------------------- //
+
+// -------------------- R O U T E  M E S S A G E -------------------- //
 
 app.get("/message/new", (req, res) => {
   const user = req.session.user;
@@ -403,6 +411,20 @@ app.put('/editmessage/:id', (req, res) => {
 });
 
 // Mettre à jour le statut de lecture d'un message
+// app.put("/markasread/:id", (req, res) => {
+//   const messageId = req.params.id;
+//   Message.findByIdAndUpdate(messageId, { lu: true }, { new: true })
+//     .then(updatedMessage => {
+//       res.json({ message: "Message lu", updatedMessage });
+//       console.log("log server markread messageid",messageId);
+//     })
+//     .catch(err => {
+//       console.error("log server markread messageid",messageId,err);
+//       res.status(500).json({ error: "Une erreur s'est produite lors de la mise à jour du message." });
+//     });
+// });
+
+// Mettre à jour le statut de lecture d'un message
 app.put("/markasread/:id", (req, res) => {
   const messageId = req.params.id;
   Message.findByIdAndUpdate(messageId, { lu: true })
@@ -417,6 +439,11 @@ app.put("/markasread/:id", (req, res) => {
 
 
 
+
+
+
+
+
 // Effacer message
 app.delete("/deletemessage/:id", (req, res) => {
   const id = req.params.id;
@@ -425,7 +452,7 @@ app.delete("/deletemessage/:id", (req, res) => {
     .catch((err) => res.status(500).json({ error: err.message }));
 });
 
-// -------------------- P R O D U I T S -------------------- //
+// -------------------- R O U T E  P R O D U I T S -------------------- //
 
 // Afficher produits
 app.get("/products", (req, res) => {
@@ -486,7 +513,7 @@ app.post("/product/edit/:id", upload.single("photo"), (req, res) => {
     { categorie, nom, prix, description, photo },
     { new: true }
   )
-    .then((updatedProduct) => {
+    .then((updatedProduct) => { 
       res.redirect("/products");
     })
     .catch((err) => res.json({ error: err.message }));
@@ -500,17 +527,22 @@ app.delete("/product/delete/:id", (req, res) => {
     .catch((err) => res.status(500).json({ error: err.message }));
 });
 
-// -------------------- P A N I E R -------------------- //
+// -------------------- R O U T E   P A N I E R -------------------- //
 
-app.get("/basket", (req, res) => {
+app.get('/basket', (req, res) => {
   const user = req.session.user;
   let cartItems = req.cookies.cartItems || [];
   let prix_total = 0;
-  cartItems.forEach((item) => {
-    item.total = item.product.prix * item.quantite;
-    prix_total += item.total;
+
+  cartItems.forEach(item => {
+      item.total = item.product.prix * item.quantite;
+      prix_total += item.total;
   });
-  res.json({ cartItems: cartItems, user: user, prix_total: prix_total });
+  res.json({
+      cartItems: cartItems,
+      user: user, 
+      prix_total: prix_total
+  });
 });
 
 // Ajouter au panier
@@ -527,7 +559,11 @@ app.post("/add-to-cart/:productId", async (req, res) => {
       const product = await Product.findById(productId);
       if (product) {
         cartItems.push({
-          product: { id: product._id, nom: product.nom, prix: product.prix },
+          product: {
+            id: product._id,
+            nom: product.nom,
+            prix: product.prix,
+          },
           quantite: 1,
         });
       }
@@ -535,29 +571,21 @@ app.post("/add-to-cart/:productId", async (req, res) => {
       console.log(error);
     }
   }
-  res.cookie("cartItems", cartItems, {
-    httpOnly: true,
-    sameSite: "none",
-    secure: true,
-  });
+  res.cookie("cartItems", cartItems, { httpOnly: true, sameSite: 'none', secure: true });
   res.redirect("/basket");
 });
 
-// Modifier les Quantités de tous les produits
-app.post("/update-quantities", (req, res) => {
+
+app.post('/update-quantities', (req, res) => { // Modifier les Quantités de tous les produits
   const updatedQuantities = req.body;
   let cartItems = req.cookies.cartItems || [];
   for (const productId in updatedQuantities) {
-    const item = cartItems.find((item) => item.product.id === productId);
-    if (item) {
-      item.quantite = parseInt(updatedQuantities[productId]);
-    }
+      const item = cartItems.find(item => item.product.id === productId);
+      if (item) {
+          item.quantite = parseInt(updatedQuantities[productId]);
+      }
   }
-  res.cookie("cartItems", cartItems, {
-    httpOnly: true,
-    sameSite: "none",
-    secure: true,
-  });
+  res.cookie("cartItems", cartItems, { httpOnly: true, sameSite: 'none', secure: true });
   res.json({ success: true, message: "Quantités mises à jour avec succès." });
 });
 
@@ -565,14 +593,11 @@ app.post("/update-quantities", (req, res) => {
 app.get("/removeProduct/:productId", (req, res) => {
   const productId = req.params.productId;
   let cartItems = req.cookies.cartItems || [];
-  cartItems = cartItems.filter((item) => item.product.id !== productId);
-  res.cookie("cartItems", cartItems, {
-    httpOnly: true,
-    sameSite: "none",
-    secure: false,
-  });
+  cartItems = cartItems.filter(item => item.product.id !== productId);
+  res.cookie("cartItems", cartItems, { httpOnly: true, sameSite: 'none', secure: false });
   res.json({ success: true, message: "Produit retiré avec succès." });
 });
+
 // Vider le panier
 app.get("/clearBasket", (req, res) => {
   res.clearCookie("cartItems");
@@ -586,8 +611,7 @@ app.post("/validateBasket", async (req, res) => {
   const heure = moment().format("DD-MM-YYYY, h:mm:ss");
   const products = req.cookies.cartItems; // récupère array Products
   try {
-    // Stocker dans la base de donnée
-    const basket = await Basket.create({
+    const basket = await Basket.create({ // Stocker dans la base de donnée
       prix_total: prixTotal,
       email: email,
       products: products,
@@ -598,36 +622,27 @@ app.post("/validateBasket", async (req, res) => {
     res.json({ success: true, email: email, basketId: basketId });
   } catch (error) {
     console.log(error);
-    res.json({
-      success: false,
-      message: "Une erreur est survenue lors de la validation du panier.",
-    });
+    res.json({ success: false, message: "Une erreur lors de la validation du panier." });
   }
 });
 
 // Confirmation panier
 app.get("/order/:basketId", async (req, res) => {
-  const basketId = req.params.basketId;
-  try {
-    const basket = await Basket.findById(basketId);
-    if (!basket) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Panier non trouvé." });
+    const basketId = req.params.basketId;
+    try {
+        const basket = await Basket.findById(basketId);
+        if (!basket) {
+            return res.status(404).json({ success: false, message: "Panier non trouvé." });
+        }
+        res.json(basket);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, message: "Erreur lors de la récupération du panier" });
     }
-    res.json(basket);
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      success: false,
-      message: "Erreur lors de la récupération des détails du panier.",
-    });
-  }
 });
 
 // Paiement succès
 app.post("/createInvoice", async (req, res) => {
-  // Récupérer l'ID du panier depuis la requête
   const basketId = req.body.basketId;
   const heure = moment().format("DD-MM-YYYY, h:mm:ss");
   try {
@@ -637,7 +652,7 @@ app.post("/createInvoice", async (req, res) => {
     res.json({ success: true, invoiceId: invoiceId });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ success: false, message: "Erreur serveur." });
+    res.status(500).json({ success: false, message: 'Erreur serveur.' });
   }
 });
 
@@ -649,13 +664,14 @@ app.get("/payementsuccess/:invoiceId", async (req, res) => {
     if (!invoice) {
       return res.redirect("/erreur");
     }
-    res.json({ user: user, basketId: invoice.basketId, invoiceId: invoiceId });
+    res.json({user: user,basketId: invoice.basketId,invoiceId: invoiceId,});
   } catch (error) {
     console.log(error);
     res.redirect("/erreur");
   }
 });
 
-app.listen(5000, () => {
-  console.log(`Server is running on 5000 ${5000}`);
+//------------------------L A N C E M E N T  S E R V E U R -----------------------//
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
