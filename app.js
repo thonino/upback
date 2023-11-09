@@ -34,6 +34,7 @@ app.use(
   })
 );
 
+// CORS
 app.use(
   cors({
     origin: "https://uppercase-app-front-6fca89d1dde9.herokuapp.com",
@@ -90,9 +91,10 @@ app.use(session({
     httpOnly: true,
     maxAge: 30 * 24 * 60 * 60 * 1000,
     sameSite: isProd ? 'None' : 'Lax', 
-    secure: false, 
+    secure: isProd, 
   },
 }));
+
 
 // MongoDB, Mongoose, and dotenv
 require("dotenv").config();
