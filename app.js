@@ -238,11 +238,11 @@ app.get("/login", async (req, res) => {
 });
 
 // Connexion
-app.get("/login", async (req, res) => {
-  if (req.session && req.session.user) {
-    return res.json({ success: true, data: req.session.user });
-  } else { return res.status(200).send("Aucune persone connecté");}
-});
+// app.get("/login", async (req, res) => {
+//   if (req.session && req.session.user) {
+//     return res.json({ success: true, data: req.session.user });
+//   } else { return res.status(200).send("Aucune persone connecté");}
+// });
 app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
