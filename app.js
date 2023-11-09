@@ -73,32 +73,23 @@ const Basket = require("./models/Basket");
 const Product = require("./models/Product");
 
 
+// Configurer express-session
+const isProd = process.env.NODE_ENV === 'production';
 app.use(session({
-  secret: 'votreSecretDeSession', 
+  key: "userId",
+  secret: "1234",
+  resave: false,
+  saveUninitialized: false,
   cookie: {
-    maxAge: 1000 * 60 * 60 * 24 
+    httpOnly: true,
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+    sameSite: isProd ? 'None' : 'Lax', 
+    secure: isProd, 
   },
   store: MongoStore.create({
     mongoUrl: url
   }),
-  resave: false,
-  saveUninitialized: false 
 }));
-
-// Configurer express-session
-// const isProd = process.env.NODE_ENV === 'production';
-// app.use(session({
-//   key: "userId",
-//   secret: "1234",
-//   resave: false,
-//   saveUninitialized: false,
-//   cookie: {
-//     httpOnly: true,
-//     maxAge: 30 * 24 * 60 * 60 * 1000,
-//     sameSite: isProd ? 'None' : 'Lax', 
-//     secure: isProd, 
-//   },
-// }));
 
 // Configurer express-session
 // const isProd = process.env.NODE_ENV === 'production';
