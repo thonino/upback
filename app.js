@@ -416,8 +416,8 @@ app.put('/editmessage/:id', (req, res) => {
     expediteur: req.body.expediteur,
     destinataire: req.body.destinataire,
     texte: req.body.texte,
-    date: heure,
     lu: false,
+    date: heure,
   };
   Message.findByIdAndUpdate(req.params.id, messageData)
     .then(() => {
