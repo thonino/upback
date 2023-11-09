@@ -44,6 +44,8 @@ app.use(
   })
 );
 
+
+
 // Serve static files
 app.use(express.static("public"));
 app.use("/uploads", express.static("uploads"));
@@ -94,6 +96,12 @@ app.use(session({
     secure: false, 
   },
 }));
+
+res.cookie('userId', 'votre-valeur', {
+  sameSite: 'none', 
+  secure: true, 
+  httpOnly: true 
+});
 
 // app.use(session({
 //   key: "userId",
