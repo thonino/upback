@@ -8,7 +8,7 @@ const session = require("express-session");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
 const mongoose = require("mongoose");
-const MongoStore = require('connect-mongo');
+// const MongoStore = require('connect-mongo');
 const methodOverride = require("method-override");
 const moment = require("moment");
 const multer = require("multer");
@@ -100,9 +100,7 @@ app.use(session({
     sameSite: isProd ? 'None' : 'Lax', 
     secure: false, 
   },
-    store: MongoStore.create({
-    mongoUrl: url
-  }),
+
 }));
 
 
