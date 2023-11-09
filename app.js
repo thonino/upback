@@ -25,7 +25,11 @@ app.use(
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "https://uppercase-app-back-efd9a0ca1970.herokuapp.com"],
+      imgSrc: [
+        "'self'", 
+        "https://uppercase-app-back-efd9a0ca1970.herokuapp.com",
+        "https://uppercase-app-front-6fca89d1dde9.herokuapp.com"
+      ],
     },
   })
 );
@@ -73,21 +77,6 @@ app.use(function (req, res, next) {
 //   store: MongoStore.create({
 //     mongoUrl: url
 //   }),
-// }));
-
-// Configurer express-session
-// const isProd = process.env.NODE_ENV === 'production';
-// app.use(session({
-//   key: "userId",
-//   secret: "1234",
-//   resave: false,
-//   saveUninitialized: false,
-//   cookie: {
-//     httpOnly: true,
-//     maxAge: 30 * 24 * 60 * 60 * 1000,
-//     sameSite: isProd ? 'None' : 'Lax', 
-//     secure: false, 
-//   },
 // }));
 
 // Configurer express-session
