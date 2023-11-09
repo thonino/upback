@@ -100,16 +100,9 @@ const sessionConfig = {
     httpOnly: true,
     maxAge: 30 * 24 * 60 * 60 * 1000,
     sameSite: isProd ? 'None' : 'Lax',
-    secure: isProd, // Doit être 'true' si vous êtes en HTTPS
+    secure: isProd, 
   }
 };
-
-if (isProd) {
-  sessionConfig.cookie.secure = true; 
-}
-
-app.use(session(sessionConfig));
-
 
 
 // MongoDB, Mongoose, and dotenv
