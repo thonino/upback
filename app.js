@@ -417,37 +417,17 @@ app.put('/editmessage/:id', (req, res) => {
 });
 
 // Mettre à jour le statut de lecture d'un message
-// app.put("/markasread/:id", (req, res) => {
-//   const messageId = req.params.id;
-//   Message.findByIdAndUpdate(messageId, { lu: true })
-//     .then(() => {
-//       res.json({ message: "Le message a été marqué comme lu." });
-//     })
-//     .catch(err => {
-//       console.error(err);
-//       res.status(500).json({ error: "Une erreur s'est produite lors de la mise à jour du message." });
-//     });
-// });
-
-// Mettre à jour le message et le statut de lecture
 app.put("/markasread/:id", (req, res) => {
   const messageId = req.params.id;
-  const updates = req.body;
-
-  Message.findByIdAndUpdate(
-    messageId,
-    { $set: updates }, 
-    { new: true } 
-  )
-  .then(updatedMessage => {
-    res.json({ message: "Le message a été mis à jour avec succès.", updatedMessage });
-  })
-  .catch(err => {
-    console.error(err);
-    res.status(500).json({ error: "Une erreur s'est produite lors de la mise à jour du message." });
-  });
+  Message.findByIdAndUpdate(messageId, { lu: true })
+    .then(() => {
+      res.json({ message: "Le message a été marqué comme lu." });
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(500).json({ error: "Une erreur s'est produite lors de la mise à jour du message." });
+    });
 });
-
 
 
 
