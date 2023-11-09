@@ -73,18 +73,31 @@ app.use(function (req, res, next) {
 // }));
 
 // Configurer express-session
-const isProd = process.env.NODE_ENV === 'production';
+// const isProd = process.env.NODE_ENV === 'production';
+// app.use(session({
+//   key: "userId",
+//   secret: "1234",
+//   resave: false,
+//   saveUninitialized: false,
+//   cookie: {
+//     httpOnly: true,
+//     maxAge: 30 * 24 * 60 * 60 * 1000,
+//     sameSite: isProd ? 'None' : 'Lax', 
+//     secure: false, 
+//   },
+// }));
+
+const session = require('express-session');
 app.use(session({
-  key: "userId",
-  secret: "1234",
-  resave: false,
-  saveUninitialized: false,
+  secret: 'votre_secret_unique', // un secret pour signer le cookie de session
+  resave: false, // ne pas sauvegarder la session si non modifiée
+  saveUninitialized: false, // ne pas créer de session pour les requêtes non authentifiées
   cookie: {
-    httpOnly: true,
-    maxAge: 30 * 24 * 60 * 60 * 1000,
-    sameSite: isProd ? 'None' : 'Lax', 
-    secure: false, 
-  },
+    httpOnly: true, // le cookie n'est pas accessible via JavaScript côté client
+    secure: true, // le cookie n'est envoyé que sur HTTPS
+    sameSite: 'none', // nécessaire pour les requêtes cross-origin
+    maxAge: 24 * 60 * 60 * 1000 // durée de vie du cookie (exemple pour 1 jour)
+  }
 }));
 
 // MongoDB, Mongoose, and dotenv
