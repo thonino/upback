@@ -72,26 +72,9 @@ app.use(function (req, res, next) {
 //   }),
 // }));
 
-
-
 // Configurer express-session
-// const isProd = process.env.NODE_ENV === 'production';
-// app.use(session({
-//   key: "userId",
-//   secret: "1234",
-//   resave: false,
-//   saveUninitialized: false,
-//   cookie: {
-//     httpOnly: true,
-//     maxAge: 30 * 24 * 60 * 60 * 1000,
-//     sameSite: isProd ? 'None' : 'Lax', 
-//     secure: false, 
-//   },
-// }));
-
-// Configurer express-session pour la production
 const isProd = process.env.NODE_ENV === 'production';
-const sessionConfig = {
+app.use(session({
   key: "userId",
   secret: "1234",
   resave: false,
@@ -99,10 +82,12 @@ const sessionConfig = {
   cookie: {
     httpOnly: true,
     maxAge: 30 * 24 * 60 * 60 * 1000,
-    sameSite: isProd ? 'None' : 'Lax',
-    secure: isProd, 
-  }
-};
+    sameSite: isProd ? 'None' : 'Lax', 
+    secure: false, 
+  },
+}));
+
+
 
 
 // MongoDB, Mongoose, and dotenv
@@ -314,19 +299,19 @@ app.delete("/delete-user/:id", requireAdmin, async (req, res) => {
 
 // -------------------- R O U T E  M E S S A G E -------------------- //
 
-app.get("/message/new", (req, res) => {
-  const user = req.session.user;
-  const heure = moment().format("DD-MM-YYYY, h:mm:ss");
-  const expediteur = req.query.expediteur;
-  const destinataire = req.query.destinataire;
-  res.json({
-    user: user,
-    heure: heure,
-    expediteur: expediteur,
-    destinataire: destinataire,
-    lu:lu,
-  });
-});
+// app.get("/message/new", (req, res) => {
+//   const user = req.session.user;
+//   const heure = moment().format("DD-MM-YYYY, h:mm:ss");
+//   const expediteur = req.query.expediteur;
+//   const destinataire = req.query.destinataire;
+//   res.json({
+//     user: user,
+//     heure: heure,
+//     expediteur: expediteur,
+//     destinataire: destinataire,
+//     lu:lu,
+//   });
+// });
 
 app.post("/message", (req, res) => {
   const heure = moment().format("DD-MM-YYYY, h:mm:ss");
