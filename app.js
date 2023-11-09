@@ -228,11 +228,14 @@ app.post("/register/new", function (req, res) {
 });
 
 
-// res.cookie('userId', 'votre-valeur', {
-//   sameSite: 'none', 
-//   secure: true, 
-//   httpOnly: true 
-// });
+// Vérification de la connexion de l'utilisateur
+app.get("/login", async (req, res) => {
+  if (req.session && req.session.user) {
+    return res.json({ success: true, user: req.session.user });
+  } else {
+    return res.json({ success: false });
+  }
+});
 
 // connexion
 app.post("/login", async (req, res) => {
