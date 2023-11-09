@@ -97,12 +97,6 @@ app.use(session({
   },
 }));
 
-res.cookie('userId', 'votre-valeur', {
-  sameSite: 'none', 
-  secure: true, 
-  httpOnly: true 
-});
-
 // app.use(session({
 //   key: "userId",
 //   secret: "votre_secret_ici", 
@@ -233,31 +227,73 @@ app.post("/register/new", function (req, res) {
     });
 });
 
-// Connexion
-app.get("/login", async (req, res) => {
-  if (req.session && req.session.user) {
-    return res.json({ success: true, data: req.session.user });
-  } else { return res.status(200).send("Aucune persone connecté");}
-});
+
+// res.cookie('userId', 'votre-valeur', {
+//   sameSite: 'none', 
+//   secure: true, 
+//   httpOnly: true 
+// });
+
+// connexion
 app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
-    if (!user) { return res.status(400).json({ 
-        success: false, error: "Email invalide" });
+    if (!user) { 
+      return res.status(400).json({ 
+        success: false, error: "Email invalide" 
+      });
     }
-    const isPasswordValid = await bcrypt.compare(
-      password, user.password);
-    if (!isPasswordValid) { return res.status(400)
-        .json({ success: false, error: "Mot de passe invalide" });
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) { 
+      return res.status(400).json({
+        success: false, error: "Mot de passe invalide" 
+      });
     }
     req.session.user = user;
+
+    res.cookie('userId', user._id.toString(), { 
+      sameSite: 'none', 
+      secure: true,  
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000 
+    });
+
     return res.json({ success: true, data: user });
   } catch (err) {
+    console.error(err);
     return res.status(500).json({ 
-      success: false, error: "Erreur serveur" });
+      success: false, error: "Erreur serveur" 
+    });
   }
 });
+
+
+// Connexion
+// app.get("/login", async (req, res) => {
+//   if (req.session && req.session.user) {
+//     return res.json({ success: true, data: req.session.user });
+//   } else { return res.status(200).send("Aucune persone connecté");}
+// });
+// app.post("/login", async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+//     const user = await User.findOne({ email });
+//     if (!user) { return res.status(400).json({ 
+//         success: false, error: "Email invalide" });
+//     }
+//     const isPasswordValid = await bcrypt.compare(
+//       password, user.password);
+//     if (!isPasswordValid) { return res.status(400)
+//         .json({ success: false, error: "Mot de passe invalide" });
+//     }
+//     req.session.user = user;
+//     return res.json({ success: true, data: user });
+//   } catch (err) {
+//     return res.status(500).json({ 
+//       success: false, error: "Erreur serveur" });
+//   }
+// });
 
 // Déconnexion
 app.post("/logout", (req, res) => {
