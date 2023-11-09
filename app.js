@@ -411,20 +411,6 @@ app.put('/editmessage/:id', (req, res) => {
 });
 
 // Mettre à jour le statut de lecture d'un message
-// app.put("/markasread/:id", (req, res) => {
-//   const messageId = req.params.id;
-//   Message.findByIdAndUpdate(messageId, { lu: true }, { new: true })
-//     .then(updatedMessage => {
-//       res.json({ message: "Message lu", updatedMessage });
-//       console.log("log server markread messageid",messageId);
-//     })
-//     .catch(err => {
-//       console.error("log server markread messageid",messageId,err);
-//       res.status(500).json({ error: "Une erreur s'est produite lors de la mise à jour du message." });
-//     });
-// });
-
-// Mettre à jour le statut de lecture d'un message
 app.put("/markasread/:id", (req, res) => {
   const messageId = req.params.id;
   Message.findByIdAndUpdate(messageId, { lu: true })
@@ -436,13 +422,6 @@ app.put("/markasread/:id", (req, res) => {
       res.status(500).json({ error: "Une erreur s'est produite lors de la mise à jour du message." });
     });
 });
-
-
-
-
-
-
-
 
 // Effacer message
 app.delete("/deletemessage/:id", (req, res) => {
