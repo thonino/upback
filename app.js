@@ -5,12 +5,13 @@ const path = require("path");
 const session = require("express-session");
 const cors = require("cors");
 const mongoose = require("mongoose");
-const methodOverride = require("method-override");
 const multer = require("multer");
 const cookieParser = require("cookie-parser");
 const toobusy = require("toobusy-js");
+const bcrypt = require("bcrypt");
+const moment = require("moment"); 
 
-// 2 : Création application Express
+// 2 : Création de l'application Express
 const app = express();
 
 // 3 : Configuration du moteur de vue
@@ -18,7 +19,7 @@ app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
 // GROUPE 1 : Middlewares DIVERS
-// 1 : Traitement,JSON, Urlencodées
+// 1 : Traitement JSON, Urlencodées
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -27,7 +28,7 @@ app.use(express.static("public"));
 app.use("/uploads", express.static("uploads"));
 app.use("/cartItem.json", express.static("cartItem.json"));
 
-// 3 : Performance, gérer surcharge
+// 3 : Performance, gestion de la surcharge
 app.use(function (req, res, next) {
   if (toobusy()) {
     res.status(503).send("Serveur trop occupé");
@@ -36,7 +37,7 @@ app.use(function (req, res, next) {
   }
 });
 
-// 4 : Téléchargements fichiers,limité à 5MB
+// 4 : Téléchargements de fichiers limités à 5MB
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "uploads/");
@@ -53,7 +54,7 @@ const upload = multer({
 });
 app.use(cookieParser());
 
-// Groupe 2 : Middlewares pour la base de données 
+// GROUPE 2 : Middlewares pour la base de données
 // Connexion à MongoDB
 require("dotenv").config();
 const url = process.env.DATABASE_URL;
@@ -73,8 +74,8 @@ const Invoice = require("./models/Invoice");
 const Basket = require("./models/Basket");
 const Product = require("./models/Product");
 
-// Groupe 2: Middlewares pour la sécurité 
-// En-têtes de sécurité renforcés
+// GROUPE 3 : Middlewares pour la sécurité
+// En-têtes de sécurité renforcées
 app.use(
   helmet.contentSecurityPolicy({
     directives: {
@@ -95,7 +96,7 @@ app.use(
   })
 );
 
-// Session 
+// Session
 const isProd = process.env.NODE_ENV === "production";
 app.use(
   session({
@@ -112,7 +113,7 @@ app.use(
   })
 );
 
-// vérifier le rôle administrateur
+// Vérification du rôle administrateur
 const requireAdmin = (req, res, next) => {
   const user = req.session.user;
   if (!user) {
