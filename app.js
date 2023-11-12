@@ -1,5 +1,4 @@
 //  - - - - - - - - -D E P E N D A N C E S- - - - - - - - - - //
-//                          L O C A L                            //
 const express = require("express");
 const helmet = require("helmet");
 const path = require("path");
