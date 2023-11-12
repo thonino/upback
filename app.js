@@ -183,10 +183,6 @@ app.get("/", (req, res) => {
 });
 
 // Inscription
-app.get("/register", (req, res) => {
-  const user = req.session.user;
-  res.json(user);
-});
 app.post("/register/new", function (req, res) {
   const prenom = req.body.prenom;
   const email = req.body.email;
@@ -694,3 +690,4 @@ app.get("/payementsuccess/:invoiceId", async (req, res) => {
 app.listen(5000, () => {
   console.log(`Server is running on 5000 ${5000}`);
 });
+
