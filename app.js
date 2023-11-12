@@ -14,7 +14,6 @@ const moment = require("moment");
 // Création de l'application Express
 const app = express();
 
-
 // GROUPE 1 : Middlewares DIVERS
 // 1 : Traitement JSON, Urlencodées
 app.use(express.json());
@@ -49,7 +48,7 @@ const upload = multer({
     fileSize: 1024 * 1024 * 5,
   },
 });
-app.use(cookieParser());
+
 
 // GROUPE 2 : Middlewares pour la base de données
 // Connexion à MongoDB
@@ -109,6 +108,8 @@ app.use(
     },
   })
 );
+
+app.use(cookieParser());
 
 // Vérification du rôle administrateur
 const requireAdmin = (req, res, next) => {
