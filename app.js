@@ -49,13 +49,15 @@ const upload = multer({
   },
 });
 
-
 // GROUPE 2 : Middlewares pour la base de données
 // Connexion à MongoDB
 require("dotenv").config();
 const url = process.env.DATABASE_URL;
 mongoose
-  .connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
+  .connect(url, { 
+    useNewUrlParser: true, 
+    useUnifiedTopology: true 
+  })
   .then(() => {
     console.log("MongoDB connectée");
   })
