@@ -1,4 +1,4 @@
-// 1 : Chargement des dépendances
+// Chargement des dépendances
 const express = require("express");
 const helmet = require("helmet");
 const path = require("path");
@@ -11,12 +11,9 @@ const toobusy = require("toobusy-js");
 const bcrypt = require("bcrypt");
 const moment = require("moment"); 
 
-// 2 : Création de l'application Express
+// Création de l'application Express
 const app = express();
 
-// 3 : Configuration du moteur de vue
-app.set("views", path.join(__dirname, "views"));
-app.set("view engine", "ejs");
 
 // GROUPE 1 : Middlewares DIVERS
 // 1 : Traitement JSON, Urlencodées
