@@ -1,23 +1,80 @@
-//  - - - - - - - - -D E P E N D A N C E S- - - - - - - - - - //
+// 1 : Chargement des dépendances
 const express = require("express");
 const helmet = require("helmet");
 const path = require("path");
-const app = express();
 const session = require("express-session");
 const cors = require("cors");
-const bcrypt = require("bcrypt");
 const mongoose = require("mongoose");
 const methodOverride = require("method-override");
-const moment = require("moment");
 const multer = require("multer");
 const cookieParser = require("cookie-parser");
 const toobusy = require("toobusy-js");
 
-// Set the view engine
+// 2 : Création application Express
+const app = express();
+
+// 3 : Configuration du moteur de vue
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
-// MIDDLEWARES
+// GROUPE 1 : Middlewares DIVERS
+// 1 : Traitement,JSON, Urlencodées
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// 2 : Serveur et fichiers statiques
+app.use(express.static("public"));
+app.use("/uploads", express.static("uploads"));
+app.use("/cartItem.json", express.static("cartItem.json"));
+
+// 3 : Performance, gérer surcharge
+app.use(function (req, res, next) {
+  if (toobusy()) {
+    res.status(503).send("Serveur trop occupé");
+  } else {
+    next();
+  }
+});
+
+// 4 : Téléchargements fichiers,limité à 5MB
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/");
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname);
+  },
+});
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 1024 * 1024 * 5,
+  },
+});
+app.use(cookieParser());
+
+// Groupe 2 : Middlewares pour la base de données 
+// Connexion à MongoDB
+require("dotenv").config();
+const url = process.env.DATABASE_URL;
+mongoose
+  .connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => {
+    console.log("MongoDB connectée");
+  })
+  .catch((err) => {
+    console.log(err);
+  });
+
+// Modèles, collections MongoDB
+const Message = require("./models/Message");
+const User = require("./models/User");
+const Invoice = require("./models/Invoice");
+const Basket = require("./models/Basket");
+const Product = require("./models/Product");
+
+// Groupe 2: Middlewares pour la sécurité 
+// En-têtes de sécurité renforcés
 app.use(
   helmet.contentSecurityPolicy({
     directives: {
@@ -28,6 +85,7 @@ app.use(
   })
 );
 
+// Partage de ressources entre domaines différents
 app.use(
   cors({
     origin: "http://localhost:3000",
@@ -37,87 +95,35 @@ app.use(
   })
 );
 
-// Serve static files
-app.use(express.static("public"));
-app.use("/uploads", express.static("uploads"));
-app.use("/cartItem.json", express.static("cartItem.json"));
-
-// Parse JSON and urlencoded data
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Too busy
-app.use(function (req, res, next) {
-  if (toobusy()) {
-    res.status(503).send("Server too busy");
-  } else {
-    next();
-  }
-});
-
-// Configurer express-session
-const isProd = process.env.NODE_ENV === 'production';
-app.use(session({
-  key: "userId",
-  secret: "1234",
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    httpOnly: true,
-    maxAge: 30 * 24 * 60 * 60 * 1000,
-    sameSite: isProd ? 'None' : 'Lax', 
-    secure: isProd, 
-  },
-}));
-
-// MongoDB, Mongoose, and dotenv
-require("dotenv").config();
-const url = process.env.DATABASE_URL;
-mongoose
-  .connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => {
-    console.log("MongoDB connected");
+// Session 
+const isProd = process.env.NODE_ENV === "production";
+app.use(
+  session({
+    key: "userId",
+    secret: "1234",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+      sameSite: isProd ? "None" : "Lax",
+      secure: isProd,
+    },
   })
-  .catch((err) => {
-    console.log(err);
-  });
+);
 
-const Message = require("./models/Message");
-const User = require("./models/User");
-const Invoice = require("./models/Invoice");
-const Basket = require("./models/Basket");
-const Product = require("./models/Product");
-
-// Method-override
-app.use(methodOverride("_method"));
-
-// Multer
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/");
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.originalname);
-  },
-});
-
-const upload = multer({
-  storage: storage,
-  limits: {
-    fileSize: 1024 * 1024 * 5, // Limite la taille du fichier à 5MB
-  },
-});
-app.use(cookieParser());
-
-// ajouté //
-// LOGIN ACCESS
+// vérifier le rôle administrateur
 const requireAdmin = (req, res, next) => {
   const user = req.session.user;
   if (!user) {
-    return res.status(401).json({ success: false, error: "Accès non autorisé" });
+    return res
+      .status(401)
+      .json({ success: false, error: "Accès non autorisé" });
   }
-  if (user.role !== 'admin') {
-    return res.status(403).json({ success: false, error: "Requiert un rôle administrateur" });
+  if (user.role !== "admin") {
+    return res
+      .status(403)
+      .json({ success: false, error: "Requiert un rôle administrateur" });
   }
   next();
 };
@@ -132,7 +138,9 @@ app.get("/admin/users", requireAdmin, async (req, res) => {
     res.json({ success: true, users });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false, error: "Erreur interne du serveur" });
+    res
+      .status(500)
+      .json({ success: false, error: "Erreur interne du serveur" });
   }
 });
 
@@ -141,18 +149,28 @@ app.get("/admin/users", requireAdmin, async (req, res) => {
 app.post("/admin/user/:id/role", requireAdmin, async (req, res) => {
   const { role } = req.body;
   if (!role) {
-    return res.status(400).json({ success: false, error: "Le rôle est requis" });
+    return res
+      .status(400)
+      .json({ success: false, error: "Le rôle est requis" });
   }
-  
+
   try {
-    const user = await User.findByIdAndUpdate(req.params.id, { role }, { new: true });
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { role },
+      { new: true }
+    );
     if (!user) {
-      return res.status(404).json({ success: false, error: "Utilisateur non trouvé" });
+      return res
+        .status(404)
+        .json({ success: false, error: "Utilisateur non trouvé" });
     }
     res.json({ success: true, message: "Rôle mis à jour", user });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false, error: "Erreur interne du serveur" });
+    res
+      .status(500)
+      .json({ success: false, error: "Erreur interne du serveur" });
   }
 });
 
@@ -173,14 +191,21 @@ app.post("/register/new", function (req, res) {
   const email = req.body.email;
   const password = bcrypt.hashSync(req.body.password, 10);
   const role = req.body.role;
-  const formData = new User({prenom,email,password,role,
-  });
-  formData .save() .then(() => {res.json({ 
-        success: true, message: "Inscription réussie!" });
+  const formData = new User({ prenom, email, password, role });
+  formData
+    .save()
+    .then(() => {
+      res.json({
+        success: true,
+        message: "Inscription réussie!",
+      });
     })
-    .catch((err) => {console.error(err); res.status(500).json({ 
-          success: false, error: "Erreur lors de l'inscription" 
-        });
+    .catch((err) => {
+      console.error(err);
+      res.status(500).json({
+        success: false,
+        error: "Erreur lors de l'inscription",
+      });
     });
 });
 
@@ -188,25 +213,33 @@ app.post("/register/new", function (req, res) {
 app.get("/login", async (req, res) => {
   if (req.session && req.session.user) {
     return res.json({ success: true, data: req.session.user });
-  } else { return res.status(200).send("Aucune persone connecté");}
+  } else {
+    return res.status(200).send("Aucune persone connecté");
+  }
 });
 app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
-    if (!user) { return res.status(400).json({ 
-        success: false, error: "Email invalide" });
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        error: "Email invalide",
+      });
     }
-    const isPasswordValid = await bcrypt.compare(
-      password, user.password);
-    if (!isPasswordValid) { return res.status(400)
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res
+        .status(400)
         .json({ success: false, error: "Mot de passe invalide" });
     }
     req.session.user = user;
     return res.json({ success: true, data: user });
   } catch (err) {
-    return res.status(500).json({ 
-      success: false, error: "Erreur serveur" });
+    return res.status(500).json({
+      success: false,
+      error: "Erreur serveur",
+    });
   }
 });
 
@@ -222,7 +255,9 @@ app.post("/logout", (req, res) => {
 
 // Compte user
 app.get("/account", (req, res) => {
-  if (!req.session.user){ return res.redirect("/login");}
+  if (!req.session.user) {
+    return res.redirect("/login");
+  }
   const user = req.session.user;
   res.json(user);
 });
@@ -230,8 +265,12 @@ app.get("/account", (req, res) => {
 // Modifier compte
 app.get("/edit-user/:id", (req, res) => {
   User.findById(req.params.id)
-    .then((user) => { res.json(user); })
-    .catch((err) => { console.log(err); });
+    .then((user) => {
+      res.json(user);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 });
 
 // Modifier compte
@@ -246,18 +285,23 @@ app.post("/edit-user/:id", async (req, res) => {
       const hashedPassword = bcrypt.hashSync(req.body.password, 10);
       data.password = hashedPassword;
     } catch (err) {
-      return res.status(500).json({ error: 'Erreur lors du hashage du mot de passe.' });
+      return res
+        .status(500)
+        .json({ error: "Erreur lors du hashage du mot de passe." });
     }
   }
 
-  if (req.body.role) { data.role = req.body.role;} 
-  else {data.role = req.body.roleDefault;}
+  if (req.body.role) {
+    data.role = req.body.role;
+  } else {
+    data.role = req.body.roleDefault;
+  }
 
   User.findByIdAndUpdate(req.params.id, data, { new: true })
     .then((user) => {
       res.status(200).json({
         message: "Mise à jour réussie",
-        user: user 
+        user: user,
       });
     })
     .catch((err) => {
@@ -278,7 +322,9 @@ app.delete("/delete-user/:id", requireAdmin, async (req, res) => {
     res.json({ success: true, message: "Utilisateur supprimé" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false, error: "Erreur interne du serveur" });
+    res
+      .status(500)
+      .json({ success: false, error: "Erreur interne du serveur" });
   }
 });
 
@@ -308,29 +354,28 @@ app.post("/message", (req, res) => {
 });
 
 // Messages reçus
-  app.get("/messagereceived", (req, res) => {
-    const heure = moment().format("DD-MM-YYYY, h:mm:ss");
+app.get("/messagereceived", (req, res) => {
+  const heure = moment().format("DD-MM-YYYY, h:mm:ss");
   if (!req.session.user) {
-    return res.status(401).json({ 
-      error: "Utilisateur non connecté ou session expirée." 
+    return res.status(401).json({
+      error: "Utilisateur non connecté ou session expirée.",
     });
   }
   const user = req.session.user;
   const destinataire = user.role === "admin" ? "admin@admin" : user.email;
-    Message.find({ destinataire })
-      .then((messages) => {
-        res.json({
-          heure: heure,
-          user: user,
-          messages: messages,
-        });
-      })
-      .catch((err) => {
-        console.log(err);
-        res.status(500).json({ error: "Erreur serveur" });
+  Message.find({ destinataire })
+    .then((messages) => {
+      res.json({
+        heure: heure,
+        user: user,
+        messages: messages,
       });
-  });
-  
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).json({ error: "Erreur serveur" });
+    });
+});
 
 // Messages Envoyés
 app.get("/messagesent", (req, res) => {
@@ -368,8 +413,8 @@ app.get("/editmessage/:id", (req, res) => {
     });
 });
 
-app.put('/editmessage/:id', (req, res) => {
-  const heure = moment().format('DD-MM-YYYY, h:mm:ss');
+app.put("/editmessage/:id", (req, res) => {
+  const heure = moment().format("DD-MM-YYYY, h:mm:ss");
   const messageData = {
     expediteur: req.body.expediteur,
     destinataire: req.body.destinataire,
@@ -379,11 +424,13 @@ app.put('/editmessage/:id', (req, res) => {
   };
   Message.findByIdAndUpdate(req.params.id, messageData)
     .then(() => {
-      res.json({ message: 'Message updated successfully!' });
+      res.json({ message: "Message updated successfully!" });
     })
-    .catch(err => {
+    .catch((err) => {
       console.log(err);
-      res.status(500).json({ error: 'An error occurred while updating the message' });
+      res
+        .status(500)
+        .json({ error: "An error occurred while updating the message" });
     });
 });
 
@@ -394,13 +441,15 @@ app.put("/markasread/:id", (req, res) => {
     .then(() => {
       res.json({ message: "Le message a été marqué comme lu." });
     })
-    .catch(err => {
+    .catch((err) => {
       console.error(err);
-      res.status(500).json({ error: "Une erreur s'est produite lors de la mise à jour du message." });
+      res
+        .status(500)
+        .json({
+          error: "Une erreur s'est produite lors de la mise à jour du message.",
+        });
     });
 });
-
-
 
 // Effacer message
 app.delete("/deletemessage/:id", (req, res) => {
